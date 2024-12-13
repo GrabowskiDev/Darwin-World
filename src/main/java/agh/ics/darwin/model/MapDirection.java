@@ -12,14 +12,14 @@ public enum MapDirection {
 
     public String toString() {
         return switch(this) {
-            case NORTH -> "Północ";
-            case NORTHEAST -> "Północny-Wschód";
-            case EAST -> "Wschód";
-            case SOUTHEAST -> "Południowy-Wschód";
-            case SOUTH -> "Południe";
-            case SOUTHWEST -> "Południowy-Zachód";
-            case WEST -> "Zachód";
-            case NORTHWEST -> "Północny-Zachód";
+            case NORTH -> "^";
+            case NORTHEAST -> "↗";
+            case EAST -> ">";
+            case SOUTHEAST -> "↘";
+            case SOUTH -> "v";
+            case SOUTHWEST -> "↙";
+            case WEST -> "<";
+            case NORTHWEST -> "↖";
         };
     }
 
@@ -34,6 +34,14 @@ public enum MapDirection {
             case WEST -> NORTHWEST;
             case NORTHWEST -> NORTH;
         };
+    }
+
+    public void rotate(int n) {
+        if (n>0) {
+            for (int i = 0; i < n; i++) {
+                this.next();
+            }
+        }
     }
 
     public MapDirection prev() {
