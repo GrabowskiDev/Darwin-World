@@ -30,8 +30,17 @@ public class Genes {
             System.arraycopy(parent2, 0, genes, 0, len2);
             System.arraycopy(parent1, len2, genes, len2, len1);
         }
-    }
 
+        //Mutating random number of genes
+        int genesToMutate = new Random().nextInt(genes.length+1);
+        RandomIntGenerator randomIntGenerator = new RandomIntGenerator(genes.length);
+        for (int i=0; i<genesToMutate; i++) {
+            if (randomIntGenerator.iterator().hasNext()) {
+                int geneIndex = randomIntGenerator.iterator().next();
+                mutate(geneIndex);
+            }
+        }
+    }
 
     public int getCurrentGene() {
         return genes[index];
@@ -47,9 +56,7 @@ public class Genes {
 
     @Override
     public String toString() {
-        return "Genes{" +
-                "genes=" + java.util.Arrays.toString(genes) +
-                '}';
+        return "Genes: " + java.util.Arrays.toString(genes);
     }
 
     public int[] getGenes() {
