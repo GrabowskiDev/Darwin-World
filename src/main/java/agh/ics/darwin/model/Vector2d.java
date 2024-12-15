@@ -23,6 +23,10 @@ public class Vector2d {
         return "(" + x + ", " + y + ")";
     }
 
+    public Vector2d add(Vector2d other) {
+        return new Vector2d(x + other.x, y + other.y);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
