@@ -20,15 +20,15 @@ public class Genes {
     //It creates a new Genes object by combining two parents' genes
     //len1 is number of genes from parent1, and len2 is number of genes from right parent
     public Genes(int[] parent1, int[] parent2, int len1, int len2) {
-        this.genes = new int[parent1.length + parent2.length];
+        this.genes = new int[len1 + len2];
         int side = new Random().nextInt(2);
         //First parent on left side
         if ((side == 0 && len1 >= len2) || (side == 1 && len1 < len2)) {
             System.arraycopy(parent1, 0, genes, 0, len1);
-            System.arraycopy(parent2, len2, genes, len1, parent2.length - len2);
+            System.arraycopy(parent2, len1, genes, len1, len2);
         } else {
             System.arraycopy(parent2, 0, genes, 0, len2);
-            System.arraycopy(parent1, len1, genes, len2, parent1.length - len1);
+            System.arraycopy(parent1, len2, genes, len2, len1);
         }
     }
 
@@ -45,4 +45,14 @@ public class Genes {
         genes[i] = new Random().nextInt(8);
     }
 
+    @Override
+    public String toString() {
+        return "Genes{" +
+                "genes=" + java.util.Arrays.toString(genes) +
+                '}';
+    }
+
+    public int[] getGenes() {
+        return genes;
+    }
 }
