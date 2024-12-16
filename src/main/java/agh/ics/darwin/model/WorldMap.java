@@ -41,4 +41,11 @@ public class WorldMap {
         }
     }
 
+    public Map<Vector2d, Animal> getAnimals() {
+        return animals;
+    }
+
+    public Map<Vector2d, Plant> getPlants() {
+        return plants;
+    }
 }
