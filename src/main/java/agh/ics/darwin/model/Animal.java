@@ -4,8 +4,12 @@ public class Animal implements WorldElement {
     private MapDirection direction;
     private Vector2d position;
     private Genes genes;
+    private int energy;
 
-    public Animal(Vector2d initialPosition) {
+    public Animal(Vector2d initialPosition, int initialEnergy) {
+        this.position = initialPosition;
+        this.energy = initialEnergy;
+
         int random = new java.util.Random().nextInt(8);
         this.direction = switch (random) {
             case 0 -> MapDirection.NORTH;
@@ -19,7 +23,6 @@ public class Animal implements WorldElement {
             default -> throw new IllegalStateException("Unexpected value: " + random);
         };
 
-        this.position = initialPosition;
         int[] genesArray = new int[7];
         for (int i=0; i<7; i++) {
             genesArray[i] = new java.util.Random().nextInt(8);
@@ -44,5 +47,16 @@ public class Animal implements WorldElement {
         }
         this.position = this.position.add(this.direction.toUnitVector());
         this.genes.nextGene();
+    }
+
+    public void loseEnergy(int energy) {
+        if (energy < 0) {
+            throw new IllegalArgumentException("Energy loss cannot be negative");
+        }
+        this.energy -= energy;
+    }
+
+    public int getEnergy() {
+        return this.energy;
     }
 }
