@@ -1,7 +1,9 @@
 package agh.ics.darwin.model;
 
+import java.util.Arrays;
 import java.util.Random;
 
+//TODO: Iterator
 public class Genes {
     private final int[] genes; //Values between 0 and 7
     private int index = 0;
@@ -56,7 +58,7 @@ public class Genes {
 
     @Override
     public String toString() {
-        return "Genes: " + java.util.Arrays.toString(genes);
+        return "Genes: " + Arrays.toString(genes);
     }
 
     public int[] getGenes() {
