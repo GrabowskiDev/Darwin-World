@@ -30,9 +30,16 @@ public class Simulation {
         }
     }
 
-    private void moveAnimals() {}
+    private void moveAnimals() {
+        for (Map.Entry<Vector2d, Animal> animal : map.getAnimals().entrySet()) {
+            Vector2d position = animal.getKey();
+            Animal currentAnimal = animal.getValue();
+            currentAnimal.move();
+        }
+    }
 
-    private void eatPlants() {}
+    private void eatPlants() {
+    }
 
     private void reproduceAnimals() {}
 

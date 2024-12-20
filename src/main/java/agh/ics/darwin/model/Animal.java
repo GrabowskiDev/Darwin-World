@@ -50,8 +50,8 @@ public class Animal implements WorldElement {
     }
 
     public void loseEnergy(int energy) {
-        if (energy < 0) {
-            throw new IllegalArgumentException("Energy loss cannot be negative");
+        if (energy <= 0) {
+            throw new IllegalArgumentException("Energy loss must be greater than 0");
         }
         this.energy -= energy;
     }
