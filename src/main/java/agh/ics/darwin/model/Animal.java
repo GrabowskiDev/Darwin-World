@@ -3,8 +3,10 @@ package agh.ics.darwin.model;
 public class Animal implements WorldElement {
     private MapDirection direction;
     private Vector2d position;
-    private Genes genes;
+    private final Genes genes;
     private int energy;
+    private int age = 0;
+    private int numberOfChildren = 0;
 
     public Animal(Vector2d initialPosition, int initialEnergy) {
         this.position = initialPosition;
@@ -58,5 +60,13 @@ public class Animal implements WorldElement {
 
     public int getEnergy() {
         return this.energy;
+    }
+
+    public int getAge() {
+        return this.age;
+    }
+
+    public int getNumberOfChildren() {
+        return this.numberOfChildren;
     }
 }

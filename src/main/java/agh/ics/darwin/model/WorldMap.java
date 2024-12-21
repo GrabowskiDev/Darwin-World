@@ -41,6 +41,10 @@ public class WorldMap {
         if (element.getClass() == Animal.class) {
             if (animals.containsKey(position)) {
                 animals.get(position).add((Animal) element);
+                animals.get(position).sort(Comparator.comparingInt(Animal::getEnergy)
+                        .thenComparingInt(Animal::getAge)
+                        .thenComparingInt(Animal::getNumberOfChildren)
+                        .thenComparing(a -> new Random().nextInt()));
             } else {
                 animals.put(position, new ArrayList<>(Collections.singletonList((Animal) element)));
             }
