@@ -2,8 +2,7 @@ package agh.ics.darwin.model;
 
 import agh.ics.darwin.model.variants.PlantGrowthVariant;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class WorldMap {
     private final int width;
@@ -11,7 +10,7 @@ public class WorldMap {
     private final int startPlants;
     private final PlantGrowthVariant plantGrowthVariant;
 
-    private final Map<Vector2d, Animal> animals = new HashMap<>();
+    private final Map<Vector2d, ArrayList<Animal>> animals = new HashMap<>();
     private final Map<Vector2d, Plant> plants = new HashMap<>();
     //TODO: Jungle
 
@@ -40,7 +39,11 @@ public class WorldMap {
     public void place(WorldElement element) {
         Vector2d position = element.getPosition();
         if (element.getClass() == Animal.class) {
-            animals.put(position, (Animal) element);
+            if (animals.containsKey(position)) {
+                animals.get(position).add((Animal) element);
+            } else {
+                animals.put(position, new ArrayList<>(Collections.singletonList((Animal) element)));
+            }
         } else if (element.getClass() == Plant.class) {
             if (isOccupiedByPlant(position)) {
                 throw new IllegalArgumentException("Cannot place plant on another plant");
@@ -52,8 +55,15 @@ public class WorldMap {
 
     public void remove(WorldElement element) {
         Vector2d position = element.getPosition();
-        if (element instanceof Animal && animals.get(position) == element) {
-            animals.remove(position, element);
+        if (element instanceof Animal) {
+            ArrayList<Animal> animalsArray = animals.get(position);
+            if (animalsArray.contains(element)) {
+                if (animalsArray.size() == 1) {
+                    animals.remove(position);
+                } else {
+                    animalsArray.remove(element);
+                }
+            }
         } else if (element instanceof Plant && plants.get(position) == element) {
             plants.remove(position, element);
         }
@@ -63,7 +73,7 @@ public class WorldMap {
         return plants.containsKey(position);
     }
 
-    public Map<Vector2d, Animal> getAnimals() {
+    public Map<Vector2d, ArrayList<Animal>> getAnimals() {
         return animals;
     }
 
