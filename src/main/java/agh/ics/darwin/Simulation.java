@@ -4,20 +4,29 @@ import agh.ics.darwin.model.*;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Vector;
 
 public class Simulation {
     private final Parameters parameters;
     private final WorldMap map;
+    private final static int MAX_ITERATIONS = 1000; //TEMPORARY SOLUTION
 
     public Simulation(Parameters parameters) {
         this.parameters = parameters;
         this.map = new WorldMap(parameters.width(), parameters.height(), parameters.startPlants(), parameters.plantGrowth());
-
-        RandomPositionGenerator randomPositionGenerator = new RandomPositionGenerator(parameters.width(), parameters.height(), parameters.startAnimals());
-        for (Vector2d animalPosition : randomPositionGenerator) {
+        for (int i = 0; i < parameters.startAnimals(); i++) {
+            Vector2d animalPosition = new Vector2d((int) (Math.random() * parameters.width()), (int) (Math.random() * parameters.height()));
             Animal animal = new Animal(animalPosition, parameters.startEnergy());
             map.place(animal);
+        }
+    }
+
+    public void run() {
+        for (int i = 0; i < MAX_ITERATIONS; i++) {
+            removeDeadAnimals();
+            moveAnimals();
+            eatPlants();
+            reproduceAnimals();
+            growNewPlants();
         }
     }
 
@@ -61,15 +70,13 @@ public class Simulation {
                 Animal parent1 = animals.get(i);
                 Animal parent2 = animals.get(i+1);
                 if (parent2.getEnergy() >= parameters.energyToBeFed()) {
-                    Vector2d childPosition = parent1.getPosition();
-
                     //Genes
                     int totalEnergy = parent1.getEnergy() + parent2.getEnergy();
                     int parent1Len = (int) Math.ceil((double) (parent1.getEnergy()/totalEnergy) * parameters.genomeLength());
                     int parent2Len = parameters.genomeLength() - parent1Len;
                     Genes childGenes = new Genes(parent1.getGenes().getGenes(), parent2.getGenes().getGenes(), parent1Len, parent2Len);
 
-                    Animal child = new Animal(childPosition, parameters.energyUsedToBreed() * 2, childGenes);
+                    Animal child = new Animal(parent1.getPosition(), parameters.energyUsedToBreed() * 2, childGenes);
                     map.place(child);
                     parent1.loseEnergy(parameters.energyUsedToBreed());
                     parent2.loseEnergy(parameters.energyUsedToBreed());
@@ -80,5 +87,19 @@ public class Simulation {
         }
     }
 
-    private void growNewPlants() {}
+    private void growNewPlants() {
+        RandomUniquePositionGenerator randomUniquePositionGenerator = new RandomUniquePositionGenerator(parameters.width(), parameters.height());
+        int i = 0;
+        while (i < parameters.plantsPerDay()) {
+            if (!randomUniquePositionGenerator.iterator().hasNext()) {
+                break;
+            }
+            Vector2d plantPosition = randomUniquePositionGenerator.iterator().next();
+            if (!map.isOccupiedByPlant(plantPosition)) {
+                Plant plant = new Plant(plantPosition);
+                map.place(plant);
+                i++;
+            }
+        }
+    }
 }

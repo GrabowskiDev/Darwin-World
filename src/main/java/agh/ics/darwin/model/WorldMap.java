@@ -21,8 +21,12 @@ public class WorldMap {
         this.plantGrowthVariant = plantGrowthVariant;
 
         //Placing plants
-        RandomPositionGenerator randomPositionGenerator = new RandomPositionGenerator(width, height, startPlants);
-        for (Vector2d plantPosition : randomPositionGenerator) {
+        RandomUniquePositionGenerator randomUniquePositionGenerator = new RandomUniquePositionGenerator(width, height);
+        for (int i = 0; i < startPlants; i++) {
+            if (!randomUniquePositionGenerator.iterator().hasNext()) {
+                throw new IllegalArgumentException("Not enough space for plants");
+            }
+            Vector2d plantPosition = randomUniquePositionGenerator.iterator().next();
             Plant plant = new Plant(plantPosition);
             plants.put(plantPosition, plant);
         }

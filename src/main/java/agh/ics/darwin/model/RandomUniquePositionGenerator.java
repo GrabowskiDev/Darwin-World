@@ -1,18 +1,15 @@
 package agh.ics.darwin.model;
 
 import java.util.*;
-import java.util.function.Consumer;
 
-public class RandomPositionGenerator implements Iterable<Vector2d> {
+public class RandomUniquePositionGenerator implements Iterable<Vector2d> {
     private final int maxWidth;
     private final int maxHeight;
-    private final int grassCount;
     private final ArrayList<Vector2d> allPositions;
     private int currentIndex = 0;
     private final Random random;
 
-    public RandomPositionGenerator(int maxWidth, int maxHeight, int grassCount) {
-        this.grassCount = grassCount;
+    public RandomUniquePositionGenerator(int maxWidth, int maxHeight) {
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
         this.allPositions = new ArrayList<>();
@@ -34,7 +31,7 @@ public class RandomPositionGenerator implements Iterable<Vector2d> {
         return new Iterator<>() {
             @Override
             public boolean hasNext() {
-                return currentIndex < grassCount;
+                return !allPositions.isEmpty();
             }
 
             @Override
