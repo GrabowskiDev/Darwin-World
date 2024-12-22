@@ -77,6 +77,10 @@ public class WorldMap {
         return plants.containsKey(position);
     }
 
+    public boolean isOccupiedByAnimal(Vector2d position) {
+        return animals.containsKey(position);
+    }
+
     public Map<Vector2d, ArrayList<Animal>> getAnimals() {
         return animals;
     }

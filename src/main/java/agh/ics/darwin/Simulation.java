@@ -42,9 +42,43 @@ public class Simulation {
     }
 
     private void eatPlants() {
+        for (Map.Entry<Vector2d, Plant> entry : map.getPlants().entrySet()) {
+            Vector2d plantPosition = entry.getKey();
+            Plant plant = entry.getValue();
+            if (map.isOccupiedByAnimal(plantPosition)) {
+                ArrayList<Animal> animals = map.getAnimals().get(plantPosition);
+                Animal animal = animals.getFirst();
+                animal.gainEnergy(parameters.plantEnergy());
+                map.remove(plant);
+            }
+        }
     }
 
-    private void reproduceAnimals() {}
+    private void reproduceAnimals() {
+        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
+            ArrayList<Animal> animals = entry.getValue();
+            for (int i = 0; i < animals.size()-1; i+=2) {
+                Animal parent1 = animals.get(i);
+                Animal parent2 = animals.get(i+1);
+                if (parent2.getEnergy() >= parameters.energyToBeFed()) {
+                    Vector2d childPosition = parent1.getPosition();
+
+                    //Genes
+                    int totalEnergy = parent1.getEnergy() + parent2.getEnergy();
+                    int parent1Len = (int) Math.ceil((double) (parent1.getEnergy()/totalEnergy) * parameters.genomeLength());
+                    int parent2Len = parameters.genomeLength() - parent1Len;
+                    Genes childGenes = new Genes(parent1.getGenes().getGenes(), parent2.getGenes().getGenes(), parent1Len, parent2Len);
+
+                    Animal child = new Animal(childPosition, parameters.energyUsedToBreed() * 2, childGenes);
+                    map.place(child);
+                    parent1.loseEnergy(parameters.energyUsedToBreed());
+                    parent2.loseEnergy(parameters.energyUsedToBreed());
+                } else {
+                    break;
+                }
+            }
+        }
+    }
 
     private void growNewPlants() {}
 }
