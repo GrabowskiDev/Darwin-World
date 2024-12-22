@@ -3,8 +3,29 @@ package agh.ics.darwin.model;
 public class Animal implements WorldElement {
     private MapDirection direction;
     private Vector2d position;
-    private Genes genes;
+    private final Genes genes;
     private int energy;
+    private int age = 0;
+    private int numberOfChildren = 0;
+
+    public Animal(Vector2d initialPosition, int initialEnergy, Genes genes) {
+        this.position = initialPosition;
+        this.energy = initialEnergy;
+        this.genes = genes;
+
+        int random = new java.util.Random().nextInt(8);
+        this.direction = switch (random) {
+            case 0 -> MapDirection.NORTH;
+            case 1 -> MapDirection.NORTHEAST;
+            case 2 -> MapDirection.EAST;
+            case 3 -> MapDirection.SOUTHEAST;
+            case 4 -> MapDirection.SOUTH;
+            case 5 -> MapDirection.SOUTHWEST;
+            case 6 -> MapDirection.WEST;
+            case 7 -> MapDirection.NORTHWEST;
+            default -> throw new IllegalStateException("Unexpected value: " + random);
+        };
+    }
 
     public Animal(Vector2d initialPosition, int initialEnergy) {
         this.position = initialPosition;
@@ -56,7 +77,26 @@ public class Animal implements WorldElement {
         this.energy -= energy;
     }
 
+    public void gainEnergy(int energy) {
+        if (energy <= 0) {
+            throw new IllegalArgumentException("Energy gain must be greater than 0");
+        }
+        this.energy += energy;
+    }
+
     public int getEnergy() {
         return this.energy;
+    }
+
+    public int getAge() {
+        return this.age;
+    }
+
+    public int getNumberOfChildren() {
+        return this.numberOfChildren;
+    }
+
+    public Genes getGenes() {
+        return genes;
     }
 }

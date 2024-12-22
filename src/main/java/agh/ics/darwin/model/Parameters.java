@@ -54,5 +54,8 @@ public record Parameters(
         if (genomeLength < 0) {
             throw new IllegalArgumentException("Genome length must be non-negative");
         }
+        if (energyUsedToBreed > energyToBeFed) {
+            throw new IllegalArgumentException("Energy used to breed must be less than energy to be fed");
+        }
     }
 }

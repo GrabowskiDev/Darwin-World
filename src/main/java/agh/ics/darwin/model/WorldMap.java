@@ -21,8 +21,12 @@ public class WorldMap {
         this.plantGrowthVariant = plantGrowthVariant;
 
         //Placing plants
-        RandomPositionGenerator randomPositionGenerator = new RandomPositionGenerator(width, height, startPlants);
-        for (Vector2d plantPosition : randomPositionGenerator) {
+        RandomUniquePositionGenerator randomUniquePositionGenerator = new RandomUniquePositionGenerator(width, height);
+        for (int i = 0; i < startPlants; i++) {
+            if (!randomUniquePositionGenerator.iterator().hasNext()) {
+                throw new IllegalArgumentException("Not enough space for plants");
+            }
+            Vector2d plantPosition = randomUniquePositionGenerator.iterator().next();
             Plant plant = new Plant(plantPosition);
             plants.put(plantPosition, plant);
         }
@@ -41,6 +45,10 @@ public class WorldMap {
         if (element.getClass() == Animal.class) {
             if (animals.containsKey(position)) {
                 animals.get(position).add((Animal) element);
+                animals.get(position).sort(Comparator.comparingInt(Animal::getEnergy)
+                        .thenComparingInt(Animal::getAge)
+                        .thenComparingInt(Animal::getNumberOfChildren)
+                        .thenComparing(a -> new Random().nextInt()));
             } else {
                 animals.put(position, new ArrayList<>(Collections.singletonList((Animal) element)));
             }
@@ -71,6 +79,10 @@ public class WorldMap {
 
     public boolean isOccupiedByPlant(Vector2d position) {
         return plants.containsKey(position);
+    }
+
+    public boolean isOccupiedByAnimal(Vector2d position) {
+        return animals.containsKey(position);
     }
 
     public Map<Vector2d, ArrayList<Animal>> getAnimals() {
