@@ -63,9 +63,7 @@ public class Animal implements WorldElement {
 
     public void move() {
         int currentGene = this.genes.getCurrentGene();
-        for (int i=0; i<currentGene; i++) {
-            this.direction = this.direction.next();
-        }
+        this.direction = this.direction.rotate(currentGene);
         this.position = this.position.add(this.direction.toUnitVector());
         this.genes.nextGene();
     }

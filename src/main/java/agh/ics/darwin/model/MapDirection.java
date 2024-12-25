@@ -36,6 +36,14 @@ public enum MapDirection {
         };
     }
 
+    public MapDirection rotate(int times) {
+        MapDirection result = this;
+        for (int i = 0; i < times; i++) {
+            result = result.next();
+        }
+        return result;
+    }
+
     public Vector2d toUnitVector() {
         return switch (this) {
             case NORTH -> new Vector2d(0, 1);
