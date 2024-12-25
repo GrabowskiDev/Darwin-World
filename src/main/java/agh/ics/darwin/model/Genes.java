@@ -53,12 +53,19 @@ public class Genes {
     }
 
     public void mutate(int i) {
-        genes[i] = new Random().nextInt(8);
+        RandomIntGenerator randomIntGenerator = new RandomIntGenerator(8);
+        while (randomIntGenerator.iterator().hasNext()) {
+            int newGene = randomIntGenerator.iterator().next();
+            if (newGene != genes[i]) {
+                genes[i] = newGene;
+                break;
+            }
+        }
     }
 
     @Override
     public String toString() {
-        return "Genes: " + Arrays.toString(genes);
+        return Arrays.toString(genes);
     }
 
     public int[] getGenes() {
