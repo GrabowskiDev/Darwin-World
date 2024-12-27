@@ -82,7 +82,6 @@ public class WorldMap {
 
     public void move(Animal animal) {
         Vector2d oldPosition = animal.getPosition();
-        System.out.println(oldPosition);
         if (!animals.containsKey(oldPosition) || !animals.get(oldPosition).contains(animal)) {
             throw new IllegalArgumentException("Animal does not belong to this WorldMap");
         }
