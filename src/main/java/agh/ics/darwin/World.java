@@ -1,18 +1,46 @@
 package agh.ics.darwin;
 
 import agh.ics.darwin.model.Genes;
+import agh.ics.darwin.model.Parameters;
+import agh.ics.darwin.model.WorldMap;
+import agh.ics.darwin.model.variants.BehaviourVariant;
+import agh.ics.darwin.model.variants.MapVariant;
+import agh.ics.darwin.model.variants.MutationVariant;
+import agh.ics.darwin.model.variants.PlantGrowthVariant;
 
 public class World {
     public static void main(String[] args) {
         System.out.println("Hello, World!");
 
-        Genes genes1 = new Genes(new int[]{1, 2, 2, 1, 5, 6, 7});
-        Genes genes2 = new Genes(new int[]{0, 4, 2, 6, 3, 3, 1});
+        Parameters parameters = testParameters();
+        Simulation simulation = new Simulation(parameters);
+        WorldMap initMap = simulation.getMap();
+        initMap.getAnimals().forEach((k, v) -> System.out.println(k + " -> " + v));
 
-        Genes genes3 = new Genes(genes1.getGenes(), genes2.getGenes(), 3, 4);
-        System.out.println(genes1);
-        System.out.println(genes2);
-        System.out.println(genes3);
+        simulation.run();
+        WorldMap finalMap = simulation.getMap();
+        finalMap.getAnimals().forEach((k, v) -> System.out.println(k + " -> " + v));
 
+    }
+
+    private static Parameters testParameters() {
+        return new Parameters(
+                10,
+                10,
+                MapVariant.Globe,
+                20,
+                5,
+                10,
+                PlantGrowthVariant.Equator,
+                10,
+                20,
+                15,
+                10,
+                0,
+                2,
+                MutationVariant.Random,
+                8,
+                BehaviourVariant.Predestination
+        );
     }
 }

@@ -102,4 +102,8 @@ public class Simulation {
             }
         }
     }
+
+    public WorldMap getMap() {
+        return map;
+    }
 }
