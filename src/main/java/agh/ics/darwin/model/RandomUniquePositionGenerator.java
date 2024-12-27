@@ -36,7 +36,7 @@ public class RandomUniquePositionGenerator implements Iterable<Vector2d> {
 
             @Override
             public Vector2d next() {
-                int index = random.nextInt(allPositions.size() - currentIndex);
+                int index = random.nextInt(allPositions.size());
                 currentIndex++;
                 return allPositions.remove(index);
             }

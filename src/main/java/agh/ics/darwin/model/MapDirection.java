@@ -37,6 +37,9 @@ public enum MapDirection {
     }
 
     public MapDirection rotate(int times) {
+        if (times < 0 || times > 7) {
+            throw new IllegalArgumentException("Invalid number of rotations (should be 0-7, got " + times + ")");
+        }
         MapDirection result = this;
         for (int i = 0; i < times; i++) {
             result = result.next();
