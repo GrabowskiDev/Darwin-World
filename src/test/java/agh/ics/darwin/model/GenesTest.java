@@ -16,6 +16,18 @@ class GenesTest {
     }
 
     @Test
+    void nextGeneLooping() {
+        Genes genes = new Genes(new int[]{0, 1, 2, 3, 4});
+        int initialGene = genes.getCurrentGene();
+        genes.nextGene();
+        genes.nextGene();
+        genes.nextGene();
+        genes.nextGene();
+        genes.nextGene();
+        assertEquals(initialGene, genes.getCurrentGene());
+    }
+
+    @Test
     void mutate() {
         Genes genes = new Genes(new int[]{1, 2, 3, 4, 5});
         genes.mutate(0);
