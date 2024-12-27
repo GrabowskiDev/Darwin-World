@@ -77,6 +77,7 @@ public class Simulation {
     }
 
     private void reproduceAnimals() {
+        ArrayList <Animal> animalsToPlace = new ArrayList<>();
         for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
             ArrayList<Animal> animals = entry.getValue();
             for (int i = 0; i < animals.size()-1; i+=2) {
@@ -91,13 +92,17 @@ public class Simulation {
 
                     Animal child = new Animal(parent1.getPosition(), parameters.energyUsedToBreed() * 2, childGenes);
                     System.out.println("reproduced");
-                    map.place(child);
+                    animalsToPlace.add(child);
                     parent1.loseEnergy(parameters.energyUsedToBreed());
                     parent2.loseEnergy(parameters.energyUsedToBreed());
                 } else {
                     break;
                 }
             }
+        }
+
+        for (Animal animal : animalsToPlace) {
+            map.place(animal);
         }
     }
 
