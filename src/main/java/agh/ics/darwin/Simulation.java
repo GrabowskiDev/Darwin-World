@@ -51,6 +51,7 @@ public class Simulation {
     }
 
     private void eatPlants() {
+        ArrayList <Plant> plantsToRemove = new ArrayList<>();
         for (Map.Entry<Vector2d, Plant> entry : map.getPlants().entrySet()) {
             Vector2d plantPosition = entry.getKey();
             Plant plant = entry.getValue();
@@ -58,8 +59,11 @@ public class Simulation {
                 ArrayList<Animal> animals = map.getAnimals().get(plantPosition);
                 Animal animal = animals.getFirst();
                 animal.gainEnergy(parameters.plantEnergy());
-                map.remove(plant);
+                plantsToRemove.add(plant);
             }
+        }
+        for (Plant plant : plantsToRemove) {
+            map.remove(plant);
         }
     }
 
