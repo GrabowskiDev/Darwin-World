@@ -47,11 +47,15 @@ public class Simulation {
     }
 
     private void moveAnimals() {
+        ArrayList <Animal> animalsToMove = new ArrayList<>();
         for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
             ArrayList<Animal> animals = entry.getValue();
             for (Animal animal : animals) {
-                map.move(animal);
+                animalsToMove.add(animal);
             }
+        }
+        for (Animal animal : animalsToMove) {
+            animal.move(map);
         }
     }
 
