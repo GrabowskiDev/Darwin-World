@@ -82,10 +82,20 @@ public class WorldMap {
 
     public void move(Animal animal) {
         Vector2d oldPosition = animal.getPosition();
+        System.out.println(oldPosition);
         if (!animals.containsKey(oldPosition) || !animals.get(oldPosition).contains(animal)) {
             throw new IllegalArgumentException("Animal does not belong to this WorldMap");
         }
         animal.move(this);
+        Vector2d newPosition = animal.getPosition();
+        ArrayList<Animal> animalsArray = animals.get(oldPosition);
+        if (animalsArray.size() == 1) {
+            animals.remove(oldPosition);
+        } else {
+            animalsArray.remove(animal);
+        }
+        place(animal);
+
     }
 
     public boolean isOccupiedByPlant(Vector2d position) {

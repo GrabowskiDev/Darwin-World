@@ -26,6 +26,7 @@ public class Simulation {
 
     public void run() {
         for (int i = 0; i < MAX_ITERATIONS; i++) {
+            System.out.println(i);
             removeDeadAnimals();
             moveAnimals();
             eatPlants();
@@ -85,6 +86,7 @@ public class Simulation {
                     Genes childGenes = new Genes(parent1.getGenes().getGenes(), parent2.getGenes().getGenes(), parent1Len, parent2Len);
 
                     Animal child = new Animal(parent1.getPosition(), parameters.energyUsedToBreed() * 2, childGenes);
+                    System.out.println("reproduced");
                     map.place(child);
                     parent1.loseEnergy(parameters.energyUsedToBreed());
                     parent2.loseEnergy(parameters.energyUsedToBreed());
