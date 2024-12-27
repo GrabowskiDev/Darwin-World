@@ -42,6 +42,9 @@ public class WorldMap {
 
     public void place(WorldElement element) {
         Vector2d position = element.getPosition();
+        if (!insideBorders(position)) {
+            throw new IllegalArgumentException("Position out of borders");
+        }
         if (element.getClass() == Animal.class) {
             if (animals.containsKey(position)) {
                 animals.get(position).add((Animal) element);
@@ -77,12 +80,24 @@ public class WorldMap {
         }
     }
 
+    public void move(Animal animal) {
+        Vector2d oldPosition = animal.getPosition();
+        if (!animals.containsKey(oldPosition) || !animals.get(oldPosition).contains(animal)) {
+            throw new IllegalArgumentException("Animal does not belong to this WorldMap");
+        }
+        animal.move(this);
+    }
+
     public boolean isOccupiedByPlant(Vector2d position) {
         return plants.containsKey(position);
     }
 
     public boolean isOccupiedByAnimal(Vector2d position) {
         return animals.containsKey(position);
+    }
+
+    public boolean insideBorders(Vector2d position) {
+        return position.follows(new Vector2d(0, 0)) && position.precedes(new Vector2d(width-1, height-1));
     }
 
     public Map<Vector2d, ArrayList<Animal>> getAnimals() {

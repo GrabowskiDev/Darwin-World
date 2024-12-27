@@ -19,8 +19,8 @@ public class RandomUniquePositionGenerator implements Iterable<Vector2d> {
     }
 
     private void generateAllPositions() {
-        for (int x = 0; x <= maxWidth; x++) {
-            for (int y = 0; y <= maxHeight; y++) {
+        for (int x = 0; x < maxWidth; x++) {
+            for (int y = 0; y < maxHeight; y++) {
                 allPositions.add(new Vector2d(x, y));
             }
         }

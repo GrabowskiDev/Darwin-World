@@ -27,6 +27,14 @@ public class Vector2d {
         return new Vector2d(x + other.x, y + other.y);
     }
 
+    public boolean precedes(Vector2d other) {
+        return x <= other.x && y <= other.y;
+    }
+
+    public boolean follows(Vector2d other) {
+        return x >= other.x && y >= other.y;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

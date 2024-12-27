@@ -31,7 +31,7 @@ class MapDirectionTest {
 
     @Test
     void rotate() {
-        assertEquals(MapDirection.NORTH, MapDirection.NORTH.rotate(-5));
+        assertThrows(IllegalArgumentException.class, () -> MapDirection.NORTH.rotate(-5));
         assertEquals(MapDirection.NORTH, MapDirection.NORTH.rotate(0));
         assertEquals(MapDirection.NORTHEAST, MapDirection.NORTH.rotate(1));
         assertEquals(MapDirection.EAST, MapDirection.NORTH.rotate(2));
@@ -40,7 +40,7 @@ class MapDirectionTest {
         assertEquals(MapDirection.SOUTHWEST, MapDirection.NORTH.rotate(5));
         assertEquals(MapDirection.WEST, MapDirection.NORTH.rotate(6));
         assertEquals(MapDirection.NORTHWEST, MapDirection.NORTH.rotate(7));
-        assertEquals(MapDirection.NORTH, MapDirection.NORTH.rotate(8));
+        assertThrows(IllegalArgumentException.class, () -> MapDirection.NORTH.rotate(8));
     }
 
     @Test

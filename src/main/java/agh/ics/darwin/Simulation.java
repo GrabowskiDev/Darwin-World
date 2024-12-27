@@ -45,7 +45,7 @@ public class Simulation {
         for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
             ArrayList<Animal> animals = entry.getValue();
             for (Animal animal : animals) {
-                animal.move();
+                map.move(animal);
             }
         }
     }

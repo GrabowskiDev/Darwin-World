@@ -61,10 +61,27 @@ public class Animal implements WorldElement {
         return this.direction.toString();
     }
 
-    public void move() {
+    public void move(WorldMap map) {
         int currentGene = this.genes.getCurrentGene();
         this.direction = this.direction.rotate(currentGene);
-        this.position = this.position.add(this.direction.toUnitVector());
+
+        int width = map.getWidth();
+        int height = map.getHeight();
+        Vector2d oldPosition = this.position;
+        Vector2d newPosition = this.position.add(this.direction.toUnitVector());
+
+        if (newPosition.getX() >= width) {
+            newPosition = new Vector2d(0, newPosition.getY());
+        } else if (newPosition.getX() < 0) {
+            newPosition = new Vector2d(width-1, newPosition.getY());
+        }
+
+        if (newPosition.getY() >= height || newPosition.getY() < 0) {
+            newPosition = new Vector2d(newPosition.getX(), oldPosition.getY());
+            this.direction = this.direction.rotate(4);
+        }
+
+        this.position = newPosition;
         this.genes.nextGene();
     }
 
