@@ -15,7 +15,11 @@ public class Simulation {
         this.map = new WorldMap(parameters.width(), parameters.height(), parameters.startPlants(), parameters.plantGrowth());
         for (int i = 0; i < parameters.startAnimals(); i++) {
             Vector2d animalPosition = new Vector2d((int) (Math.random() * parameters.width()), (int) (Math.random() * parameters.height()));
-            Animal animal = new Animal(animalPosition, parameters.startEnergy());
+            int[] genesArray = new int[parameters.genomeLength()];
+            for (int j=0; j<genesArray.length; j++) {
+                genesArray[j] = new java.util.Random().nextInt(8);
+            }
+            Animal animal = new Animal(animalPosition, parameters.startEnergy(), new Genes(genesArray));
             map.place(animal);
         }
     }
@@ -76,7 +80,7 @@ public class Simulation {
                 if (parent2.getEnergy() >= parameters.energyToBeFed()) {
                     //Genes
                     int totalEnergy = parent1.getEnergy() + parent2.getEnergy();
-                    int parent1Len = (int) Math.ceil((double) (parent1.getEnergy()/totalEnergy) * parameters.genomeLength());
+                    int parent1Len = (int) Math.ceil(((double) parent1.getEnergy()/totalEnergy ) * parameters.genomeLength());
                     int parent2Len = parameters.genomeLength() - parent1Len;
                     Genes childGenes = new Genes(parent1.getGenes().getGenes(), parent2.getGenes().getGenes(), parent1Len, parent2Len);
 

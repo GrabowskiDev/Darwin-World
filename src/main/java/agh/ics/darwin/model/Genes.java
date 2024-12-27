@@ -26,9 +26,11 @@ public class Genes {
         int side = new Random().nextInt(2);
         //First parent on left side
         if ((side == 0 && len1 >= len2) || (side == 1 && len1 < len2)) {
+            System.out.println(len1 + "," + len2);
             System.arraycopy(parent1, 0, genes, 0, len1);
             System.arraycopy(parent2, len1, genes, len1, len2);
         } else {
+            System.out.println(len1 + "," + len2);
             System.arraycopy(parent2, 0, genes, 0, len2);
             System.arraycopy(parent1, len2, genes, len2, len1);
         }
