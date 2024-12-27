@@ -8,7 +8,7 @@ import java.util.Map;
 public class Simulation {
     private final Parameters parameters;
     private final WorldMap map;
-    private final static int MAX_ITERATIONS = 1000; //TEMPORARY SOLUTION
+    private final static int MAX_ITERATIONS = 50; //TEMPORARY SOLUTION
 
     public Simulation(Parameters parameters) {
         this.parameters = parameters;
@@ -36,13 +36,17 @@ public class Simulation {
     }
 
     private void removeDeadAnimals() {
+        ArrayList <Animal> animalsToRemove = new ArrayList<>();
         for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
             ArrayList<Animal> animals = entry.getValue();
             for (Animal animal : animals) {
                 if (animal.getEnergy() <= 0) {
-                    map.remove(animal);
+                    animalsToRemove.add(animal);
                 }
             }
+        }
+        for (Animal animal : animalsToRemove) {
+            map.remove(animal);
         }
     }
 
@@ -55,7 +59,8 @@ public class Simulation {
             }
         }
         for (Animal animal : animalsToMove) {
-            animal.move(map);
+            map.move(animal);
+            animal.loseEnergy(1);
         }
     }
 
