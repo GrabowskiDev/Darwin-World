@@ -20,7 +20,8 @@ public class Simulation {
             for (int j=0; j<genesArray.length; j++) {
                 genesArray[j] = new java.util.Random().nextInt(8);
             }
-            Animal animal = new Animal(animalPosition, parameters.startEnergy(), new Genes(genesArray));
+
+            Animal animal = new Animal(animalPosition, getRandomMapDirection(), parameters.startEnergy(), new Genes(genesArray));
             map.place(animal);
         }
     }
@@ -95,7 +96,7 @@ public class Simulation {
                     int parent2Len = parameters.genomeLength() - parent1Len;
                     Genes childGenes = new Genes(parent1.getGenes().getGenes(), parent2.getGenes().getGenes(), parent1Len, parent2Len, parameters.minMutations(), parameters.maxMutations());
 
-                    Animal child = new Animal(parent1.getPosition(), parameters.energyUsedToBreed() * 2, childGenes);
+                    Animal child = new Animal(parent1.getPosition(), getRandomMapDirection(), parameters.energyUsedToBreed() * 2, childGenes);
                     animalsToPlace.add(child);
                     parent1.loseEnergy(parameters.energyUsedToBreed());
                     parent2.loseEnergy(parameters.energyUsedToBreed());
@@ -153,6 +154,21 @@ public class Simulation {
                 }
             }
         }
+    }
+
+    private MapDirection getRandomMapDirection() { //TODO: Create an util with functions like this
+        int random = new java.util.Random().nextInt(8);
+        return switch (random) {
+            case 0 -> MapDirection.NORTH;
+            case 1 -> MapDirection.NORTHEAST;
+            case 2 -> MapDirection.EAST;
+            case 3 -> MapDirection.SOUTHEAST;
+            case 4 -> MapDirection.SOUTH;
+            case 5 -> MapDirection.SOUTHWEST;
+            case 6 -> MapDirection.WEST;
+            case 7 -> MapDirection.NORTHWEST;
+            default -> throw new IllegalStateException("Unexpected value: " + random);
+        };
     }
 
     public WorldMap getMap() {

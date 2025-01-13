@@ -14,7 +14,7 @@ public class WorldMapTest {
     @Test
     void testPlaceAnimal() {
         WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
-        Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
+        Animal animal = new Animal(new Vector2d(2, 3), MapDirection.NORTH,10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         map.place(animal);
         assertTrue(map.isOccupiedByAnimal(new Vector2d(2, 3)));
     }
@@ -30,7 +30,7 @@ public class WorldMapTest {
     @Test
     void testRemoveAnimal() {
         WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
-        Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
+        Animal animal = new Animal(new Vector2d(2, 3), MapDirection.NORTH,10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         map.place(animal);
         map.remove(animal);
         assertFalse(map.isOccupiedByAnimal(new Vector2d(2, 3)));
@@ -48,17 +48,17 @@ public class WorldMapTest {
     @Test
     void testMoveAnimal() {
         WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
-        Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
+        Animal animal = new Animal(new Vector2d(2, 3), MapDirection.NORTH,10, new Genes(new int[]{0, 0, 0, 0, 0, 0, 0, 0}));
         map.place(animal);
         map.move(animal);
-        assertNotEquals(new Vector2d(2, 3), animal.getPosition());
+        assertEquals(new Vector2d(2, 4), animal.getPosition());
     }
 
     @Test
     void testMoveAnimalMovingCorrectly() {
         WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Genes genes = new Genes(new int[]{0, 2, 4, 6});
-        Animal animal = new Animal(new Vector2d(2, 2), 10, genes);
+        Animal animal = new Animal(new Vector2d(2, 2), MapDirection.NORTH,10, genes);
         map.place(animal);
 
         // Move the animal according to the genes
@@ -78,7 +78,7 @@ public class WorldMapTest {
     @Test
     void animalDoesNotBelongToThisWorldMap() {
         WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
-        Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
+        Animal animal = new Animal(new Vector2d(2, 3), MapDirection.NORTH,10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         assertThrows(IllegalArgumentException.class, () -> map.move(animal));
     }
 
@@ -92,7 +92,7 @@ public class WorldMapTest {
     @Test
     void testGetAnimals() {
         WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
-        Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
+        Animal animal = new Animal(new Vector2d(2, 3), MapDirection.NORTH,10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         map.place(animal);
         Map<Vector2d, ArrayList<Animal>> animals = map.getAnimals();
         assertTrue(animals.containsKey(new Vector2d(2, 3)));
@@ -183,4 +183,5 @@ public class WorldMapTest {
         // Check if approximately 80% of the plants are in the jungle
         assertTrue(junglePlantCount > outsideJunglePlantCount);
     }
+    //TODO: Test globe functionality
 }
