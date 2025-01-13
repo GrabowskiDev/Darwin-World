@@ -51,6 +51,9 @@ public record Parameters(
         if (minMutations < 0 || maxMutations < 0 || minMutations > maxMutations) {
             throw new IllegalArgumentException("Mutation parameters must be non-negative and min must be less than max");
         }
+        if (maxMutations > genomeLength) {
+            throw new IllegalArgumentException("Max mutations must be less than genome length");
+        }
         if (genomeLength < 0) {
             throw new IllegalArgumentException("Genome length must be non-negative");
         }

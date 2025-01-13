@@ -8,28 +8,20 @@ public class Animal implements WorldElement {
     private int age = 0;
     private int numberOfChildren = 0;
 
-    public Animal(Vector2d initialPosition, int initialEnergy, Genes genes) {
+    public Animal(Vector2d initialPosition, MapDirection direction, int initialEnergy, Genes genes) {
         this.position = initialPosition;
         this.energy = initialEnergy;
         this.genes = genes;
-
-        int random = new java.util.Random().nextInt(8);
-        this.direction = switch (random) {
-            case 0 -> MapDirection.NORTH;
-            case 1 -> MapDirection.NORTHEAST;
-            case 2 -> MapDirection.EAST;
-            case 3 -> MapDirection.SOUTHEAST;
-            case 4 -> MapDirection.SOUTH;
-            case 5 -> MapDirection.SOUTHWEST;
-            case 6 -> MapDirection.WEST;
-            case 7 -> MapDirection.NORTHWEST;
-            default -> throw new IllegalStateException("Unexpected value: " + random);
-        };
+        this.direction = direction;
     }
 
     @Override
     public Vector2d getPosition() {
         return this.position;
+    }
+
+    public MapDirection getDirection() {
+        return this.direction;
     }
 
     @Override
@@ -58,7 +50,19 @@ public class Animal implements WorldElement {
         }
 
         this.position = newPosition;
-        this.genes.nextGene();
+
+        switch (map.getBehaviourVariant()) {
+            case Predestination -> {
+                this.genes.nextGene();
+            }
+            case Madness -> {
+                if (new java.util.Random().nextDouble() < 0.8) {
+                    this.genes.nextGene();
+                } else {
+                    this.genes.selectRandomGene();
+                }
+            }
+        }
     }
 
     public void loseEnergy(int energy) {
