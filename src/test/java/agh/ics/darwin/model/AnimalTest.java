@@ -1,5 +1,6 @@
 package agh.ics.darwin.model;
 
+import agh.ics.darwin.model.variants.BehaviourVariant;
 import agh.ics.darwin.model.variants.PlantGrowthVariant;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +22,7 @@ class AnimalTest {
 
     @Test
     void move() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         Vector2d oldPosition = animal.getPosition();
         animal.move(map);
@@ -69,7 +70,7 @@ class AnimalTest {
 
     @Test
     void testGenesMoveAnimalCorrectly() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Genes genes = new Genes(new int[]{0, 2, 4, 6}); // Define specific genes for testing
         Animal animal = new Animal(new Vector2d(2, 2), 10, genes);
 

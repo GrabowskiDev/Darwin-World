@@ -3,6 +3,8 @@ package agh.ics.darwin.model;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -61,7 +63,7 @@ class GenesTest {
         int[] parent1 = {0, 1, 2, 3};
         int[] parent2 = {4, 5, 6, 7};
         Genes genes = new Genes(parent1, parent2, 2, 2, 0, 0);
-        
+
         int[] expectedGenesSide0 = {0, 1, 6, 7};
         int[] expectedGenesSide1 = {4, 5, 2, 3};
 
@@ -100,5 +102,28 @@ class GenesTest {
         }
     }
 
+    @Test
+    void selectRandomGeneDifferent() {
+        Genes genes = new Genes(new int[]{0, 1, 2, 3, 4});
+        int initialGene = genes.getCurrentGene();
+        genes.selectRandomGene();
+        assertNotEquals(initialGene, genes.getCurrentGene());
+    }
+
+    @Test
+    void selectRandomGeneGettingAllGenes() {
+        Genes genes = new Genes(new int[]{0, 1, 2, 3, 4});
+        int initialGene = genes.getCurrentGene();
+        Set<Integer> selectedGenes = new HashSet<>();
+
+        for (int i = 0; i < 10000; i++) {
+            genes.selectRandomGene();
+            selectedGenes.add(genes.getCurrentGene());
+        }
+
+        // The set should contain all the genes, randomness shouldn't be a problem with 10000 iterations
+        assertEquals(5, selectedGenes.size());
+
+    }
 
 }

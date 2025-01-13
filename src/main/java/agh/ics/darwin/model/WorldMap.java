@@ -1,5 +1,6 @@
 package agh.ics.darwin.model;
 
+import agh.ics.darwin.model.variants.BehaviourVariant;
 import agh.ics.darwin.model.variants.PlantGrowthVariant;
 
 import java.util.*;
@@ -9,16 +10,18 @@ public class WorldMap {
     private final int height;
     private final int startPlants;
     private final PlantGrowthVariant plantGrowthVariant;
+    private final BehaviourVariant behaviourVariant;
     private final int jungleBottom;
     private final int jungleTop;
     private final Map<Vector2d, ArrayList<Animal>> animals = new HashMap<>();
     private final Map<Vector2d, Plant> plants = new HashMap<>();
 
-    public WorldMap(int width, int height, int startPlants, PlantGrowthVariant plantGrowthVariant) {
+    public WorldMap(int width, int height, int startPlants, PlantGrowthVariant plantGrowthVariant, BehaviourVariant behaviourVariant) {
         this.width = width;
         this.height = height;
         this.startPlants = startPlants;
         this.plantGrowthVariant = plantGrowthVariant;
+        this.behaviourVariant = behaviourVariant;
 
         //Jungle
         int jungleHeight = (int) Math.ceil(height / 5.0);
@@ -153,5 +156,9 @@ public class WorldMap {
 
     public int getJungleTop() {
         return jungleTop;
+    }
+
+    public BehaviourVariant getBehaviourVariant() {
+        return behaviourVariant;
     }
 }

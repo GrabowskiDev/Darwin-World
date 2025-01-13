@@ -13,7 +13,7 @@ public class Simulation {
 
     public Simulation(Parameters parameters) {
         this.parameters = parameters;
-        this.map = new WorldMap(parameters.width(), parameters.height(), parameters.startPlants(), parameters.plantGrowth());
+        this.map = new WorldMap(parameters.width(), parameters.height(), parameters.startPlants(), parameters.plantGrowth(), parameters.animalBehaviour());
         for (int i = 0; i < parameters.startAnimals(); i++) {
             Vector2d animalPosition = new Vector2d((int) (Math.random() * parameters.width()), (int) (Math.random() * parameters.height()));
             int[] genesArray = new int[parameters.genomeLength()];

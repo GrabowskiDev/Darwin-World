@@ -58,6 +58,16 @@ public class Genes {
         index = (index + 1) % genes.length;
     }
 
+    public void selectRandomGene() {
+        int[] availableIndexes = new int[genes.length - 1];
+        for (int i = 0, j = 0; i < genes.length; i++) {
+            if (i != index) {
+                availableIndexes[j++] = i;
+            }
+        }
+        index = availableIndexes[new Random().nextInt(availableIndexes.length)];
+    }
+
     public void mutate(int i) {
         RandomIntGenerator randomIntGenerator = new RandomIntGenerator(8);
         while (randomIntGenerator.iterator().hasNext()) {

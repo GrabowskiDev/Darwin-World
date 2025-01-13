@@ -62,7 +62,19 @@ public class Animal implements WorldElement {
         }
 
         this.position = newPosition;
-        this.genes.nextGene();
+
+        switch (map.getBehaviourVariant()) {
+            case Predestination -> {
+                this.genes.nextGene();
+            }
+            case Madness -> {
+                if (new java.util.Random().nextDouble() < 0.8) {
+                    this.genes.nextGene();
+                } else {
+                    this.genes.selectRandomGene();
+                }
+            }
+        }
     }
 
     public void loseEnergy(int energy) {

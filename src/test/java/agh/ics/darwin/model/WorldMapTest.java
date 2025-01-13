@@ -1,5 +1,6 @@
 package agh.ics.darwin.model;
 
+import agh.ics.darwin.model.variants.BehaviourVariant;
 import agh.ics.darwin.model.variants.PlantGrowthVariant;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,7 @@ public class WorldMapTest {
 
     @Test
     void testPlaceAnimal() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         map.place(animal);
         assertTrue(map.isOccupiedByAnimal(new Vector2d(2, 3)));
@@ -20,7 +21,7 @@ public class WorldMapTest {
 
     @Test
     void testPlacePlant() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Plant plant = new Plant(new Vector2d(2, 3));
         map.place(plant);
         assertTrue(map.isOccupiedByPlant(new Vector2d(2, 3)));
@@ -28,7 +29,7 @@ public class WorldMapTest {
 
     @Test
     void testRemoveAnimal() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         map.place(animal);
         map.remove(animal);
@@ -37,7 +38,7 @@ public class WorldMapTest {
 
     @Test
     void testRemovePlant() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Plant plant = new Plant(new Vector2d(2, 3));
         map.place(plant);
         map.remove(plant);
@@ -46,7 +47,7 @@ public class WorldMapTest {
 
     @Test
     void testMoveAnimal() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         map.place(animal);
         map.move(animal);
@@ -55,7 +56,7 @@ public class WorldMapTest {
 
     @Test
     void testMoveAnimalMovingCorrectly() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Genes genes = new Genes(new int[]{0, 2, 4, 6});
         Animal animal = new Animal(new Vector2d(2, 2), 10, genes);
         map.place(animal);
@@ -76,21 +77,21 @@ public class WorldMapTest {
 
     @Test
     void animalDoesNotBelongToThisWorldMap() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         assertThrows(IllegalArgumentException.class, () -> map.move(animal));
     }
 
     @Test
     void testInsideBorders() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         assertTrue(map.insideBorders(new Vector2d(5, 5)));
         assertFalse(map.insideBorders(new Vector2d(10, 10)));
     }
 
     @Test
     void testGetAnimals() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Animal animal = new Animal(new Vector2d(2, 3), 10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         map.place(animal);
         Map<Vector2d, ArrayList<Animal>> animals = map.getAnimals();
@@ -99,7 +100,7 @@ public class WorldMapTest {
 
     @Test
     void testGetPlants() {
-        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Plant plant = new Plant(new Vector2d(2, 3));
         map.place(plant);
         Map<Vector2d, Plant> plants = map.getPlants();
@@ -108,35 +109,35 @@ public class WorldMapTest {
 
     @Test
     void testJungleBoundaries() {
-        WorldMap map1 = new WorldMap(10, 1, 0, PlantGrowthVariant.Equator);
+        WorldMap map1 = new WorldMap(10, 1, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         int expectedJungleBottom1 = 0;
         int expectedJungleTop1 = 0;
 
-        WorldMap map2 = new WorldMap(10, 2, 0, PlantGrowthVariant.Equator);
+        WorldMap map2 = new WorldMap(10, 2, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         int expectedJungleBottom2 = 0;
         int expectedJungleTop2 = 1;
 
 
-        WorldMap map3 = new WorldMap(10, 3, 0, PlantGrowthVariant.Equator);
+        WorldMap map3 = new WorldMap(10, 3, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         int expectedJungleBottom3 = 1;
         int expectedJungleTop3 = 1;
 
 
-        WorldMap map4 = new WorldMap(10, 4, 0, PlantGrowthVariant.Equator);
+        WorldMap map4 = new WorldMap(10, 4, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         int expectedJungleBottom4 = 1;
         int expectedJungleTop4 = 2;
 
 
-        WorldMap map5 = new WorldMap(10, 5, 0, PlantGrowthVariant.Equator);
+        WorldMap map5 = new WorldMap(10, 5, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         int expectedJungleBottom5 = 2;
         int expectedJungleTop5 = 2;
 
 
-        WorldMap map6 = new WorldMap(10, 6, 0, PlantGrowthVariant.Equator);
+        WorldMap map6 = new WorldMap(10, 6, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         int expectedJungleBottom6 = 2;
         int expectedJungleTop6 = 3;
 
-        WorldMap map7 = new WorldMap(10, 100, 0, PlantGrowthVariant.Equator);
+        WorldMap map7 = new WorldMap(10, 100, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         int expectedJungleBottom7 = 40;
         int expectedJungleTop7 = 59;
 
@@ -164,7 +165,7 @@ public class WorldMapTest {
 
     @Test
     void testJunglePlantDistribution() {
-        WorldMap map = new WorldMap(100, 100, 200, PlantGrowthVariant.Equator);
+        WorldMap map = new WorldMap(100, 100, 200, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         int jungleBottom = map.getJungleBottom();
         int jungleTop = map.getJungleTop();
         int junglePlantCount = 0;
