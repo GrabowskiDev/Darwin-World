@@ -32,6 +32,10 @@ public class Animal implements WorldElement {
         return this.position;
     }
 
+    public MapDirection getDirection() {
+        return this.direction;
+    }
+
     @Override
     public String toString() {
         return this.direction.toString();
