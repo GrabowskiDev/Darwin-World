@@ -2,6 +2,8 @@ package agh.ics.darwin.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class GenesTest {
@@ -53,4 +55,50 @@ class GenesTest {
         Genes genes = new Genes(new int[]{1, 2, 3, 4, 5});
         assertArrayEquals(new int[]{1, 2, 3, 4, 5}, genes.getGenes());
     }
+
+    @Test
+    void childGenesConstructorNoMutations() {
+        int[] parent1 = {0, 1, 2, 3};
+        int[] parent2 = {4, 5, 6, 7};
+        Genes genes = new Genes(parent1, parent2, 2, 2, 0, 0);
+        
+        int[] expectedGenesSide0 = {0, 1, 6, 7};
+        int[] expectedGenesSide1 = {4, 5, 2, 3};
+
+        assertTrue(
+                Arrays.equals(expectedGenesSide0, genes.getGenes()) ||
+                        Arrays.equals(expectedGenesSide1, genes.getGenes())
+        );
+    }
+
+    @Test
+    void childGenesConstructorDifferentLength() {
+        int[] parent1 = {0, 1, 2, 3, 4};
+        int[] parent2 = {1, 5, 6, 7, 2};
+        Genes genes = new Genes(parent1, parent2, 3, 2, 0, 0);
+
+        int[] expectedGenesSide0 = {0, 1, 2, 7, 2};
+        int[] expectedGenesSide1 = {1, 5, 2, 3, 4};
+
+        assertTrue(
+                Arrays.equals(expectedGenesSide0, genes.getGenes()) ||
+                        Arrays.equals(expectedGenesSide1, genes.getGenes())
+        );
+    }
+
+    @Test
+    void childGenesConstructorMutatingAll() {
+        int[] parent1 = {0, 1, 2, 3};
+        int[] parent2 = {0, 1, 2, 3};
+        Genes genes = new Genes(parent1, parent2, 2, 2, 4, 4);
+
+        int[] notExpectedGenes = {0, 1, 2, 3};
+        assertNotEquals(notExpectedGenes, genes.getGenes());
+
+        for (int i = 0; i < 4; i++) {
+            assertNotEquals(notExpectedGenes[i], genes.getGenes()[i]);
+        }
+    }
+
+
 }

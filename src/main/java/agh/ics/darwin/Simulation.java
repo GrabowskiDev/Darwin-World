@@ -93,7 +93,7 @@ public class Simulation {
                     int totalEnergy = parent1.getEnergy() + parent2.getEnergy();
                     int parent1Len = (int) Math.ceil(((double) parent1.getEnergy()/totalEnergy ) * parameters.genomeLength());
                     int parent2Len = parameters.genomeLength() - parent1Len;
-                    Genes childGenes = new Genes(parent1.getGenes().getGenes(), parent2.getGenes().getGenes(), parent1Len, parent2Len);
+                    Genes childGenes = new Genes(parent1.getGenes().getGenes(), parent2.getGenes().getGenes(), parent1Len, parent2Len, parameters.minMutations(), parameters.maxMutations());
 
                     Animal child = new Animal(parent1.getPosition(), parameters.energyUsedToBreed() * 2, childGenes);
                     animalsToPlace.add(child);

@@ -3,7 +3,6 @@ package agh.ics.darwin.model;
 import java.util.Arrays;
 import java.util.Random;
 
-//TODO: Iterator
 public class Genes {
     private final int[] genes; //Values between 0 and 7
     private int index = 0;
@@ -21,7 +20,14 @@ public class Genes {
 
     //It creates a new Genes object by combining two parents' genes
     //len1 is number of genes from parent1, and len2 is number of genes from right parent
-    public Genes(int[] parent1, int[] parent2, int len1, int len2) {
+    public Genes(int[] parent1, int[] parent2, int len1, int len2, int minMutations, int maxMutations) {
+        if (len1 < 0 || len2 < 0 || len1 > parent1.length || len2 > parent2.length) {
+            throw new IllegalArgumentException("Invalid lengths");
+        }
+        if (minMutations < 0 || maxMutations < 0 || minMutations > maxMutations || maxMutations > len1 + len2) {
+            throw new IllegalArgumentException("Invalid mutation range");
+        }
+
         this.genes = new int[len1 + len2];
         int side = new Random().nextInt(2);
         //First parent on left side
@@ -33,8 +39,8 @@ public class Genes {
             System.arraycopy(parent1, len2, genes, len2, len1);
         }
 
-        //Mutating random number of genes
-        int genesToMutate = new Random().nextInt(genes.length+1);
+        //Mutating genes in range [minMutations, maxMutations]
+        int genesToMutate = new Random().nextInt(maxMutations - minMutations + 1) + minMutations;
         RandomIntGenerator randomIntGenerator = new RandomIntGenerator(genes.length);
         for (int i=0; i<genesToMutate; i++) {
             if (randomIntGenerator.iterator().hasNext()) {
