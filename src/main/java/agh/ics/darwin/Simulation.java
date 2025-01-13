@@ -4,6 +4,7 @@ import agh.ics.darwin.model.*;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Random;
 
 public class Simulation {
     private final Parameters parameters;
@@ -110,17 +111,46 @@ public class Simulation {
     }
 
     private void growNewPlants() {
-        RandomUniquePositionGenerator randomUniquePositionGenerator = new RandomUniquePositionGenerator(parameters.width(), parameters.height());
+        int jungleBottom = map.getJungleBottom();
+        int jungleHeight = map.getJungleTop() - map.getJungleBottom() + 1;
+
+        RandomUniquePositionGenerator junglePositionGenerator = new RandomUniquePositionGenerator(parameters.width(), jungleHeight);
+        RandomUniquePositionGenerator outsideJunglePositionGenerator = new RandomUniquePositionGenerator(parameters.width(), parameters.height() - jungleHeight);
+        Random random = new Random();
+
         int i = 0;
         while (i < parameters.plantsPerDay()) {
-            if (!randomUniquePositionGenerator.iterator().hasNext()) {
-                break;
+            boolean placeOutside = false;
+            if (random.nextDouble() < 0.8) {
+                // Place plant inside the jungle
+                if (!junglePositionGenerator.iterator().hasNext()) {
+                    placeOutside = true;
+                } else {
+                    Vector2d plantPosition = junglePositionGenerator.iterator().next();
+                    plantPosition = new Vector2d(plantPosition.getX(), plantPosition.getY() + jungleBottom);
+                    if (!map.isOccupiedByPlant(plantPosition)) {
+                        Plant plant = new Plant(plantPosition);
+                        map.place(plant);
+                        i++;
+                    }
+                }
+            } else {
+                placeOutside = true;
             }
-            Vector2d plantPosition = randomUniquePositionGenerator.iterator().next();
-            if (!map.isOccupiedByPlant(plantPosition)) {
-                Plant plant = new Plant(plantPosition);
-                map.place(plant);
-                i++;
+            if (placeOutside) {
+                // Place plant outside the jungle
+                if (!outsideJunglePositionGenerator.iterator().hasNext()) {
+                    break;
+                }
+                Vector2d plantPosition = outsideJunglePositionGenerator.iterator().next();
+                if (plantPosition.getY() >= jungleBottom) {
+                    plantPosition = new Vector2d(plantPosition.getX(), plantPosition.getY() + jungleHeight);
+                }
+                if (!map.isOccupiedByPlant(plantPosition)) {
+                    Plant plant = new Plant(plantPosition);
+                    map.place(plant);
+                    i++;
+                }
             }
         }
     }
