@@ -7,10 +7,11 @@ import agh.ics.darwin.model.variants.BehaviourVariant;
 import agh.ics.darwin.model.variants.MapVariant;
 import agh.ics.darwin.model.variants.MutationVariant;
 import agh.ics.darwin.model.variants.PlantGrowthVariant;
+import javafx.application.Application;
 
 public class World {
     public static void main(String[] args) {
-        System.out.println("Hello, World!");
+        Application.launch(SimulationApp.class, args);
 
         Parameters parameters = testParameters();
         Simulation simulation = new Simulation(parameters);

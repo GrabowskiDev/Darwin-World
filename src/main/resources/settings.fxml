@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+<?import javafx.scene.layout.VBox?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            minHeight="550.0" minWidth="850.0"
+            fx:controller="agh.ics.darwin.presenter.SettingsPresenter">
+    <center>
+        <GridPane hgap="10" vgap="10" alignment="CENTER">
+            <Label text="Map width" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <TextField fx:id="mapWidthField" promptText="Enter map width" text="10" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <Label text="Map height" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <TextField fx:id="mapHeightField" promptText="Enter map height" text="10" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            <Label text="Number of plants at start" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <TextField fx:id="numPlantsStartField" promptText="Enter number of plants at start" text="30" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+            <Label text="Energy boost after eating plant" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+            <TextField fx:id="energyBoostField" promptText="Enter energy boost" text="30" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+            <Label text="Number of plants growing each day" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+            <TextField fx:id="numPlantsGrowField" promptText="Enter number of plants growing each day" text="5" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+            <Label text="Plant growth variant" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+            <ComboBox fx:id="plantGrowthVariantBox" GridPane.rowIndex="5" GridPane.columnIndex="1">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="Forested Equator"/>
+                        <String fx:value="Good Harvest"/>
+                    </FXCollections>
+                </items>
+            </ComboBox>
+            <Label text="Number of animals at start" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+            <TextField fx:id="numAnimalsStartField" promptText="Enter number of animals at start" text="15" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+            <Label text="Energy value at start" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+            <TextField fx:id="energyValueStartField" promptText="Enter energy value at start" text="100" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+            <Label text="Minimum amount of energy to reproduce" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+            <TextField fx:id="minEnergyReproduceField" promptText="Enter minimum energy to reproduce" text="25" GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+            <Label text="Amount of energy transferred from parents to child" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
+            <TextField fx:id="energyTransferField" promptText="Enter energy transfer" text="10" GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+            <Label text="Min/Max amount of children mutations" GridPane.rowIndex="10" GridPane.columnIndex="0"/>
+            <TextField fx:id="minMutationsField" promptText="Enter minimum mutations" text="0" GridPane.rowIndex="10" GridPane.columnIndex="1"/>
+            <TextField fx:id="maxMutationsField" promptText="Enter maximum mutations" text="5" GridPane.rowIndex="10" GridPane.columnIndex="2"/>
+            <Label text="Length of genome" GridPane.rowIndex="11" GridPane.columnIndex="0"/>
+            <TextField fx:id="genomeLengthField" promptText="Enter genome length" text="7" GridPane.rowIndex="11" GridPane.columnIndex="1"/>
+            <Label text="Behavior variant" GridPane.rowIndex="12" GridPane.columnIndex="0"/>
+            <ComboBox fx:id="behaviorVariantBox" GridPane.rowIndex="12" GridPane.columnIndex="1">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="Full Predestination"/>
+                        <String fx:value="A Bit of Madness"/>
+                    </FXCollections>
+                </items>
+            </ComboBox>
+        </GridPane>
+    </center>
+    <bottom>
+        <GridPane hgap="40" vgap="10" alignment="CENTER">
+            <Button fx:id="startButton" GridPane.rowIndex="0" GridPane.columnIndex="0" text="Start Simulation" onAction="#handleStartButton"/>
+            <Button fx:id="exportButton" GridPane.rowIndex="0" GridPane.columnIndex="1" text="Export Settings" onAction="#handleExportButton"/>
+            <Button fx:id="importButton" GridPane.rowIndex="0" GridPane.columnIndex="2" text="Import Settings" onAction="#handleImportButton"/>
+        </GridPane>
+    </bottom>
+</BorderPane>
