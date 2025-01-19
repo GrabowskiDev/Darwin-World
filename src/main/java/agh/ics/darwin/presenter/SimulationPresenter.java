@@ -9,7 +9,10 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Slider;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
@@ -68,6 +71,9 @@ public class SimulationPresenter implements MapChangeListener {
     @FXML
     private Button statsButton;
 
+    @FXML
+    private ListView<String> animalsList;
+
     private XYChart.Series<Number, Number> numAnimalsSeries = new XYChart.Series<>();
     private XYChart.Series<Number, Number> numPlantsSeries = new XYChart.Series<>();
     private XYChart.Series<Number, Number> numFreeFieldsSeries = new XYChart.Series<>();
@@ -75,7 +81,7 @@ public class SimulationPresenter implements MapChangeListener {
     private XYChart.Series<Number, Number> avgLifespanSeries = new XYChart.Series<>();
     private XYChart.Series<Number, Number> avgChildrenSeries = new XYChart.Series<>();
 
-
+    private StackPane selectedCell = null;
     private Simulation simulation;
 
     private WorldMap map;
@@ -83,6 +89,12 @@ public class SimulationPresenter implements MapChangeListener {
     private Boolean isRunning = false;
 
     private int freeFields = 0;
+
+    private List<Animal> selectedAnimals = new ArrayList<>();
+
+    private ImageView bg;
+    private ImageView grass1;
+
 
     public void setMap(WorldMap map) {
         this.map = map;
@@ -143,7 +155,16 @@ public class SimulationPresenter implements MapChangeListener {
                 simulation.setSleepDuration(newValue.intValue());
             }
         });
+        bg = new ImageView(new Image(getClass().getResourceAsStream("/img/bg.png")));
+        bg.setFitWidth(20);
+        bg.setFitHeight(20);
+
+        grass1 = new ImageView(new Image(getClass().getResourceAsStream("/img/grass_1.png")));
+        grass1.setFitWidth(20);
+        grass1.setFitHeight(20);
     }
+
+
 
     public void displayMap(WorldMap map) {
         freeFields = 0;
@@ -154,41 +175,86 @@ public class SimulationPresenter implements MapChangeListener {
         for (int y = 0; y < map.getHeight(); y++) {
             for (int x = 0; x < map.getWidth(); x++) {
                 Vector2d position = new Vector2d(x, y);
+                StackPane cell = new StackPane();
+                cell.setPrefSize(cellSize, cellSize); // Make each cell square
+                
+
+                // Add background image
+                ImageView bgImageView = new ImageView(bg.getImage());
+                bgImageView.setFitWidth(cellSize);
+                bgImageView.setFitHeight(cellSize);
+                cell.getChildren().add(bgImageView);
+
                 Label cellLabel = new Label();
+                boolean hasAnimal = false;
+                Collection<Animal> animalsAtPosition;
                 if (map.isOccupiedByAnimal(position)) {
-                    Collection<Animal> animalsAtPosition = map.getAnimals().get(position);
+                    animalsAtPosition = map.getAnimals().get(position);
                     if (animalsAtPosition != null && !animalsAtPosition.isEmpty()) {
                         List<Animal> animalsList = new CopyOnWriteArrayList<>(animalsAtPosition);
                         Animal animal = animalsList.get(0);
-                        cellLabel.setText(getDirectionArrow(animal.getDirection()));
+                        cellLabel.setGraphic(getDirectionImage(animal.getDirection()));
+                        hasAnimal = true;
                     }
-                } else if (map.isOccupiedByPlant(position)) {
-                    cellLabel.setText("*");
                 } else {
-                    cellLabel.setText(".");
-                    freeFields++;
+                    animalsAtPosition = null;
+                    if (map.isOccupiedByPlant(position)) {
+                        ImageView grassImageView = new ImageView(grass1.getImage());
+                        grassImageView.setFitWidth(cellSize);
+                        grassImageView.setFitHeight(cellSize);
+                        cell.getChildren().add(grassImageView);
+                    } else {
+                        freeFields++;
+                    }
                 }
 
-                StackPane cell = new StackPane(cellLabel);
-                cell.setPrefSize(cellSize, cellSize); // Make each cell square
-                cell.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, null, new BorderWidths(1)))); // Add border to each cell
+                cell.getChildren().add(cellLabel);
+
+                // Add mouse click event handler to change cell color only if it has an animal
+                if (hasAnimal) {
+                    cell.setOnMouseClicked(event -> {
+                        if (!isRunning) {
+                            if (selectedCell != null) {
+                                selectedCell.setBackground(null); // Deselect the previously selected cell
+                            }
+                            cell.setBackground(new Background(new BackgroundFill(Color.YELLOW, null, null))); // Select the new cell
+                            selectedCell = cell; // Update the selected cell reference
+                            showSelectedAnimals(animalsAtPosition);
+                        }
+                    });
+                }
 
                 mapGrid.add(cell, x, y);
             }
         }
     }
 
-    private String getDirectionArrow(MapDirection direction) {
-        return switch (direction) {
-            case NORTH -> "↑";
-            case NORTHEAST -> "↗";
-            case EAST -> "→";
-            case SOUTHEAST -> "↘";
-            case SOUTH -> "↓";
-            case SOUTHWEST -> "↙";
-            case WEST -> "←";
-            case NORTHWEST -> "↖";
+    private void showSelectedAnimals(Collection<Animal> animals) {
+        selectedAnimals = new ArrayList<>(animals);
+        Platform.runLater(() -> {
+            animalsList.getItems().clear();
+            for (Animal animal : selectedAnimals) {
+                animalsList.getItems().add(animal.toString());
+            }
+        });
+    }
+
+    private ImageView getDirectionImage(MapDirection direction) {
+        String imagePath = switch (direction) {
+            case NORTH -> "/img/kot_0.png";
+            case NORTHEAST -> "/img/kot_1.png";
+            case EAST -> "/img/kot_2.png";
+            case SOUTHEAST -> "/img/kot_3.png";
+            case SOUTH -> "/img/kot_4.png";
+            case SOUTHWEST -> "/img/kot_5.png";
+            case WEST -> "/img/kot_6.png";
+            case NORTHWEST -> "/img/kot_7.png";
         };
+        Image image = new Image(getClass().getResourceAsStream(imagePath));
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(20); // Set the desired width
+        imageView.setFitHeight(20);
+        return imageView;
     }
 
     @Override

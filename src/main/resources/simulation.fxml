@@ -54,7 +54,9 @@
     </VBox>
     <ScrollPane fitToHeight="false" minWidth="230.0" maxHeight="Infinity" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
         <VBox fx:id="rightSection" spacing="10">
-            <Button fx:id="testButton" onAction="#handleSimulationButton" text="Start Simulation" />
+            <Label text="Animals on selected field:" />
+            <ListView fx:id="animalsList" />
+
 
         </VBox>
     </ScrollPane>
