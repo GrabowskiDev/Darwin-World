@@ -161,9 +161,11 @@ public class WorldMap {
         Map<Vector2d, ArrayList<Animal>> deadAnimals = new HashMap<>();
         for (Map.Entry<Vector2d, ArrayList<Animal>> entry : animals.entrySet()) {
             ArrayList<Animal> deadList = new ArrayList<>();
-            for (Animal animal : entry.getValue()) {
+            for (Iterator<Animal> iterator = entry.getValue().iterator(); iterator.hasNext(); ) {
+                Animal animal = iterator.next();
                 if (animal.getEnergy() == 0) {
                     deadList.add(animal);
+                    iterator.remove(); // Safely remove the dead animal
                 }
             }
             if (!deadList.isEmpty()) {
@@ -176,14 +178,17 @@ public class WorldMap {
     public Map<Vector2d, ArrayList<Animal>> getLivingAnimals() {
         Map<Vector2d, ArrayList<Animal>> livingAnimals = new HashMap<>();
         for (Map.Entry<Vector2d, ArrayList<Animal>> entry : animals.entrySet()) {
-            ArrayList<Animal> deadList = new ArrayList<>();
-            for (Animal animal : entry.getValue()) {
+            ArrayList<Animal> livingList = new ArrayList<>();
+            for (Iterator<Animal> iterator = entry.getValue().iterator(); iterator.hasNext(); ) {
+                Animal animal = iterator.next();
                 if (animal.getEnergy() > 0) {
-                    deadList.add(animal);
+                    livingList.add(animal);
+                } else {
+                    iterator.remove(); // Safely remove the dead animal
                 }
             }
-            if (!deadList.isEmpty()) {
-                livingAnimals.put(entry.getKey(), deadList);
+            if (!livingList.isEmpty()) {
+                livingAnimals.put(entry.getKey(), livingList);
             }
         }
         return livingAnimals;
