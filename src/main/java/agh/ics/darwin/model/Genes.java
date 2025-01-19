@@ -87,4 +87,8 @@ public class Genes {
     public int[] getGenes() {
         return genes;
     }
+
+    public int getIdx() {
+        return index;
+    }
 }

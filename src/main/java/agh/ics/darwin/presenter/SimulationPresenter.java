@@ -5,12 +5,10 @@ import agh.ics.darwin.model.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.Slider;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -72,7 +70,25 @@ public class SimulationPresenter implements MapChangeListener {
     private Button statsButton;
 
     @FXML
-    private ListView<String> animalsList;
+    private HBox animalImages;
+    @FXML
+    private VBox animalDetails;
+    @FXML
+    private Label genomeLabel;
+    @FXML
+    private Label activatedGenomePartLabel;
+    @FXML
+    private Label energyLabel;
+    @FXML
+    private Label eatenPlantsLabel;
+    @FXML
+    private Label numberOfChildrenLabel;
+    @FXML
+    private Label lifespanLabel;
+    @FXML
+    private Label dayOfDeathLabel;
+    @FXML
+    private ScrollPane mapScrollPane;
 
     private XYChart.Series<Number, Number> numAnimalsSeries = new XYChart.Series<>();
     private XYChart.Series<Number, Number> numPlantsSeries = new XYChart.Series<>();
@@ -91,9 +107,20 @@ public class SimulationPresenter implements MapChangeListener {
     private int freeFields = 0;
 
     private List<Animal> selectedAnimals = new ArrayList<>();
+    private int selectedAnimalIndex = 0;
 
     private ImageView bg;
     private ImageView grass1;
+
+    private double initialX;
+    private double initialY;
+    private double initialHValue;
+    private double initialVValue;
+
+    private int cellSize = 30;
+    private int fontSize = 12;
+
+    private Vector2d selectedCellPosition = null;
 
 
     public void setMap(WorldMap map) {
@@ -131,6 +158,12 @@ public class SimulationPresenter implements MapChangeListener {
                 simulationButton.setText("Pause");
             }
             isRunning = !isRunning;
+            if (selectedCell != null) {
+                int borderWidth = Math.max(1, cellSize / 15);
+                selectedCell.setStyle("-fx-border-color: black; -fx-border-width: " + borderWidth + ";");
+                selectedCell = null;
+                selectedCellPosition = null;
+            }
         }
     }
 
@@ -139,6 +172,7 @@ public class SimulationPresenter implements MapChangeListener {
         exportStatisticsToCSV("simulation_statistics.csv", simulation.getDailyStatistics());
     }
 
+    @FXML
     public void initialize() {
         numAnimalsSeries.setName("Number of Animals");
         numPlantsSeries.setName("Number of Plants");
@@ -162,6 +196,41 @@ public class SimulationPresenter implements MapChangeListener {
         grass1 = new ImageView(new Image(getClass().getResourceAsStream("/img/grass_1.png")));
         grass1.setFitWidth(20);
         grass1.setFitHeight(20);
+
+        animalDetails.setVisible(true);
+
+        // Add scroll event handler to mapGrid
+        mapGrid.setOnScroll(event -> {
+            if (event.getDeltaY() > 0) {
+                cellSize = cellSize + 5; // Increase cell size but not more than 100
+                fontSize = fontSize + 1; // Increase font size but not more than 30
+            } else {
+                cellSize = Math.max(20, cellSize - 5); // Decrease cell size but not less than 10
+                fontSize = Math.max(14, fontSize - 1); // Decrease font size but not less than 8
+            }
+            displayMap(map); // Redraw the map with the new cell size and font size
+        });
+
+        // Set fixed size for mapGrid and wrap it in a ScrollPane
+        mapGrid.setPrefSize(800, 600); // Set the desired fixed size
+        mapScrollPane.setContent(mapGrid);
+
+        // Add mouse event handlers for dragging
+        mapGrid.setOnMousePressed(event -> {
+            initialX = event.getSceneX();
+            initialY = event.getSceneY();
+            initialHValue = mapScrollPane.getHvalue();
+            initialVValue = mapScrollPane.getVvalue();
+        });
+
+        mapGrid.setOnMouseDragged(event -> {
+            double deltaX = event.getSceneX() - initialX;
+            double deltaY = event.getSceneY() - initialY;
+            double newHValue = initialHValue - deltaX / mapGrid.getWidth();
+            double newVValue = initialVValue - deltaY / mapGrid.getHeight();
+            mapScrollPane.setHvalue(newHValue);
+            mapScrollPane.setVvalue(newVValue);
+        });
     }
 
 
@@ -170,14 +239,12 @@ public class SimulationPresenter implements MapChangeListener {
         freeFields = 0;
         mapGrid.getChildren().clear();
         mapGrid.setAlignment(Pos.CENTER); // Center the grid
-        int cellSize = 30; // Set the size of each cell
 
         for (int y = 0; y < map.getHeight(); y++) {
             for (int x = 0; x < map.getWidth(); x++) {
                 Vector2d position = new Vector2d(x, y);
                 StackPane cell = new StackPane();
                 cell.setPrefSize(cellSize, cellSize); // Make each cell square
-                
 
                 // Add background image
                 ImageView bgImageView = new ImageView(bg.getImage());
@@ -193,7 +260,10 @@ public class SimulationPresenter implements MapChangeListener {
                     if (animalsAtPosition != null && !animalsAtPosition.isEmpty()) {
                         List<Animal> animalsList = new CopyOnWriteArrayList<>(animalsAtPosition);
                         Animal animal = animalsList.get(0);
-                        cellLabel.setGraphic(getDirectionImage(animal.getDirection()));
+                        ImageView animalImageView = getDirectionImage(animal.getDirection());
+                        animalImageView.setFitWidth(cellSize);
+                        animalImageView.setFitHeight(cellSize);
+                        cellLabel.setGraphic(animalImageView);
                         hasAnimal = true;
                     }
                 } else {
@@ -210,18 +280,40 @@ public class SimulationPresenter implements MapChangeListener {
 
                 cell.getChildren().add(cellLabel);
 
-                // Add mouse click event handler to change cell color only if it has an animal
+                // Add label to indicate number of animals
+                Label animalCountLabel = new Label();
+                if (animalsAtPosition != null && animalsAtPosition.size() > 1) {
+                    animalCountLabel.setText(String.valueOf(animalsAtPosition.size()));
+                } else {
+                    animalCountLabel.setText("");
+                }
+                animalCountLabel.setStyle("-fx-font-weight: bold; -fx-font-size: " + fontSize + "px; -fx-text-fill: red;");
+                StackPane.setAlignment(animalCountLabel, Pos.BOTTOM_RIGHT);
+                cell.getChildren().add(animalCountLabel);
+
+                // Set default border color to black and adjust border width based on cell size
+                int borderWidth = Math.max(1, cellSize / 15);
+                cell.setStyle("-fx-border-color: black; -fx-border-width: " + borderWidth + ";");
+
+                // Add mouse click event handler to change cell border color only if it has an animal
                 if (hasAnimal) {
                     cell.setOnMouseClicked(event -> {
                         if (!isRunning) {
                             if (selectedCell != null) {
-                                selectedCell.setBackground(null); // Deselect the previously selected cell
+                                selectedCell.setStyle("-fx-border-color: black; -fx-border-width: " + borderWidth + ";"); // Deselect the previously selected cell
                             }
-                            cell.setBackground(new Background(new BackgroundFill(Color.YELLOW, null, null))); // Select the new cell
+                            cell.setStyle("-fx-border-color: yellow; -fx-border-width: " + borderWidth + ";");
                             selectedCell = cell; // Update the selected cell reference
+                            selectedCellPosition = position; // Store the selected cell position
                             showSelectedAnimals(animalsAtPosition);
                         }
                     });
+                }
+
+                // Reapply border style if this cell is the selected cell
+                if (position.equals(selectedCellPosition)) {
+                    cell.setStyle("-fx-border-color: yellow; -fx-border-width: " + borderWidth + ";");
+                    selectedCell = cell;
                 }
 
                 mapGrid.add(cell, x, y);
@@ -229,14 +321,34 @@ public class SimulationPresenter implements MapChangeListener {
         }
     }
 
+
     private void showSelectedAnimals(Collection<Animal> animals) {
         selectedAnimals = new ArrayList<>(animals);
         Platform.runLater(() -> {
-            animalsList.getItems().clear();
-            for (Animal animal : selectedAnimals) {
-                animalsList.getItems().add(animal.toString());
+            animalImages.getChildren().clear();
+            animalDetails.setVisible(false);
+            for (int i = 0; i < selectedAnimals.size(); i++) {
+                Animal animal = selectedAnimals.get(i);
+                ImageView animalImageView = getDirectionImage(animal.getDirection());
+                animalImageView.setFitWidth(40);
+                animalImageView.setFitHeight(40);
+                int index = i;
+                animalImageView.setOnMouseClicked(event -> showAnimalDetails(animal, index));
+                animalImages.getChildren().add(animalImageView);
             }
         });
+    }
+
+    private void showAnimalDetails(Animal animal, int index) {
+        selectedAnimalIndex = index;
+        genomeLabel.setText("Genome: " + animal.getGenes().toString());
+        activatedGenomePartLabel.setText("Activated Genome Part: " + animal.getGenes().getCurrentGene());
+        energyLabel.setText("Energy: " + animal.getEnergy());
+        eatenPlantsLabel.setText("Eaten Plants: " + animal.getPlantsEaten());
+        numberOfChildrenLabel.setText("Number of Children: " + animal.getNumberOfChildren());
+        lifespanLabel.setText("Lifespan: " + animal.getAge());
+        dayOfDeathLabel.setText("Day of Death: " + (animal.getDayOfDeath() > 0 ? animal.getDayOfDeath() : "Still alive"));
+        animalDetails.setVisible(true);
     }
 
     private ImageView getDirectionImage(MapDirection direction) {
@@ -308,13 +420,9 @@ public class SimulationPresenter implements MapChangeListener {
                     .toList();
         }
 
-        // Create a copy of the list before iterating
         List<Animal> livingAnimalsCopy = new ArrayList<>(livingAnimals);
         List<Animal> deadAnimalsCopy = new ArrayList<>(deadAnimals);
 
-
-
-        // Use the copies for further processing
         int numAnimals = livingAnimalsCopy.size();
         int numPlants = worldMap.getPlants().size();
         int numFreeFields = freeFields;
@@ -353,6 +461,10 @@ public class SimulationPresenter implements MapChangeListener {
             avgEnergySeries.getData().add(new XYChart.Data<>(day, finalAvgEnergy));
             avgLifespanSeries.getData().add(new XYChart.Data<>(day, finalAvgLifespan));
             avgChildrenSeries.getData().add(new XYChart.Data<>(day, finalAvgChildren));
+
+            if (!selectedAnimals.isEmpty()) {
+                showAnimalDetails(selectedAnimals.get(selectedAnimalIndex), selectedAnimalIndex);
+            }
         });
 
         DailyStatistics dailyStats = new DailyStatistics(

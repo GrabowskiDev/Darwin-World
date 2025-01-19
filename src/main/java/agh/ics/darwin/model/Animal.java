@@ -7,6 +7,8 @@ public class Animal implements WorldElement {
     private int energy;
     private int age = 0;
     private int numberOfChildren = 0;
+    private int dayOfDeath = 0;
+    private int plantsEaten = 0;
 
     public Animal(Vector2d initialPosition, MapDirection direction, int initialEnergy, Genes genes) {
         this.position = initialPosition;
@@ -101,5 +103,21 @@ public class Animal implements WorldElement {
 
     public Genes getGenes() {
         return genes;
+    }
+
+    public void setDayOfDeath(int dayOfDeath) {
+        this.dayOfDeath = dayOfDeath;
+    }
+
+    public int getDayOfDeath() {
+        return this.dayOfDeath;
+    }
+
+    public int getPlantsEaten() {
+        return this.plantsEaten;
+    }
+
+    public void addPlantsEaten() {
+        this.plantsEaten += 1;
     }
 }

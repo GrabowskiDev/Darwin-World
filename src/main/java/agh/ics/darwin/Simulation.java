@@ -105,6 +105,7 @@ public class Simulation implements Runnable {
             }
         }
         for (Animal animal : animalsToRemove) {
+            animal.setDayOfDeath(day);
             map.remove(animal);
         }
     }
@@ -134,6 +135,7 @@ public class Simulation implements Runnable {
                 if (animals != null && !animals.isEmpty()) {
                     Animal animal = animals.get(0); // Assuming the list is sorted by strength
                     animal.gainEnergy(parameters.plantEnergy());
+                    animal.addPlantsEaten();
                     plantsToRemove.add(plant);
                 }
             }
