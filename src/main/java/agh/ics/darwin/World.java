@@ -13,16 +13,16 @@ public class World {
     public static void main(String[] args) {
         Application.launch(SimulationApp.class, args);
 
-        Parameters parameters = testParameters();
-        Simulation simulation = new Simulation(parameters);
-        WorldMap initMap = simulation.getMap();
-        System.out.println("Initial map:");
-        initMap.getAnimals().forEach((k, v) -> System.out.println(k + " -> " + v));
-
-        simulation.run();
-        WorldMap finalMap = simulation.getMap();
-        System.out.println("Final map:");
-        finalMap.getAnimals().forEach((k, v) -> System.out.println(k + " -> " + v));
+//        Parameters parameters = testParameters();
+//        Simulation simulation = new Simulation(parameters);
+//        WorldMap initMap = simulation.getMap();
+//        System.out.println("Initial map:");
+//        initMap.getAnimals().forEach((k, v) -> System.out.println(k + " -> " + v));
+//
+//        simulation.run();
+//        WorldMap finalMap = simulation.getMap();
+//        System.out.println("Final map:");
+//        finalMap.getAnimals().forEach((k, v) -> System.out.println(k + " -> " + v));
 
     }
 

@@ -1,10 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.StackPane?>
 
-<StackPane xmlns="http://javafx.com/javafx"
-           xmlns:fx="http://javafx.com/fxml"
-           fx:controller="agh.ics.darwin.presenter.SimulationPresenter">
-    <Label fx:id="simulationLabel" text="Your simulation will be shown here"/>
-</StackPane>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.Slider?>
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="agh.ics.darwin.presenter.SimulationPresenter">
+    <HBox>
+        <VBox fx:id="leftSection" spacing="10">
+            <TitledPane text="General" expanded="false">
+                <VBox spacing="5">
+                    <Label fx:id="numAnimalsLabel" text="Number of all animals: 0"/>
+                    <Label fx:id="numPlantsLabel" text="Number of all plants: 0"/>
+                    <Label fx:id="numFreeFieldsLabel" text="Number of free fields: 0"/>
+                    <Label fx:id="avgEnergyLabel" text="Average energy level: 0"/>
+                    <Label fx:id="avgLifespanLabel" text="Average lifespan: 0"/>
+                    <Label fx:id="avgChildrenLabel" text="Average number of children: 0"/>
+                </VBox>
+            </TitledPane>
+            <TitledPane text="List of most popular genotypes" expanded="false">
+                <VBox fx:id="genotypeList" spacing="5">
+                    <!-- Genotype labels will be added here dynamically -->
+                </VBox>
+            </TitledPane>
+        </VBox>
+        <GridPane fx:id="mapGrid" gridLinesVisible="true" alignment="CENTER"/>
+        <Button fx:id="startButton" text="Start Simulation" onAction="#handleStartButton"/>
+        <Button fx:id="statsButton" text="Export Statistics" onAction="#handleStatsButton"/>
+        <Slider fx:id="speedSlider" min="100" max="2000" value="700" />
+    </HBox>
+
+</VBox>

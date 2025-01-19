@@ -1,17 +1,27 @@
 package agh.ics.darwin.presenter;
 
+import agh.ics.darwin.Simulation;
+import agh.ics.darwin.model.*;
+import agh.ics.darwin.model.variants.BehaviourVariant;
+import agh.ics.darwin.model.variants.MapVariant;
+import agh.ics.darwin.model.variants.MutationVariant;
+import agh.ics.darwin.model.variants.PlantGrowthVariant;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Properties;
+
+import static java.lang.Integer.parseInt;
 
 public class SettingsPresenter {
 
@@ -29,19 +39,28 @@ public class SettingsPresenter {
     @FXML
     private void initialize() {
         plantGrowthVariantBox.setValue("Forested Equator");
-        behaviorVariantBox.setValue("Standard");
+        behaviorVariantBox.setValue("Full Predestination");
     }
 
     @FXML
     private void handleStartButton() {
         if (validateInputs()) {
+            Parameters parameters = getParameters();
+            Simulation simulation = new Simulation(parameters);
+            WorldMap map = simulation.getMap();
+
             try {
-                FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(getClass().getClassLoader().getResource("simulation.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/simulation.fxml"));
                 Parent root = loader.load();
+                SimulationPresenter simulationPresenter = loader.getController();
+                simulationPresenter.setSimulation(simulation);
+                simulationPresenter.setMap(map);
+                simulationPresenter.displayMap(map);
+
                 Stage simulationStage = new Stage();
                 simulationStage.setTitle("Simulation");
-                simulationStage.setScene(new Scene(root, 400, 300));
+                Scene scene = new Scene(root, 1000, 800);
+                simulationStage.setScene(scene);
                 simulationStage.show();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -49,20 +68,74 @@ public class SettingsPresenter {
         }
     }
 
+    private Parameters getParameters() {
+        return new Parameters(
+               parseInt(mapWidthField.getText()),
+                parseInt(mapHeightField.getText()),
+                MapVariant.Globe,
+                parseInt(numPlantsStartField.getText()),
+                parseInt(energyBoostField.getText()),
+                parseInt(numPlantsGrowField.getText()),
+                Objects.equals(plantGrowthVariantBox.getValue(), "Forested Equator") ? PlantGrowthVariant.Equator : PlantGrowthVariant.GoodHarvest,
+                parseInt(numAnimalsStartField.getText()),
+                parseInt(energyValueStartField.getText()),
+                parseInt(minEnergyReproduceField.getText()),
+                parseInt(energyTransferField.getText()),
+                parseInt(minMutationsField.getText()),
+                parseInt(maxMutationsField.getText()),
+                MutationVariant.Random,
+                parseInt(genomeLengthField.getText()),
+                Objects.equals(behaviorVariantBox.getValue(), "Full Predestination") ? BehaviourVariant.Predestination : BehaviourVariant.Madness // You can add a dropdown in the FXML to select this
+        );
+    }
+
+    private void displayMap(WorldMap map, VBox vbox) {
+        StringBuilder mapDisplay = new StringBuilder();
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+                Vector2d position = new Vector2d(x, y);
+                if (map.isOccupiedByPlant(position)) {
+                    mapDisplay.append("* ");
+                } else if (map.isOccupiedByAnimal(position)) {
+                    Animal animal = map.getAnimals().get(position).get(0);
+                    mapDisplay.append(getDirectionArrow(animal.getDirection())).append(" ");
+                } else {
+                    mapDisplay.append(". ");
+                }
+            }
+            mapDisplay.append("\n");
+        }
+        Label mapLabel = new Label(mapDisplay.toString());
+        vbox.getChildren().add(mapLabel);
+    }
+
+    private String getDirectionArrow(MapDirection direction) {
+        return switch (direction) {
+            case NORTH -> "↑";
+            case NORTHEAST -> "↗";
+            case EAST -> "→";
+            case SOUTHEAST -> "↘";
+            case SOUTH -> "↓";
+            case SOUTHWEST -> "↙";
+            case WEST -> "←";
+            case NORTHWEST -> "↖";
+        };
+    }
+
     private boolean validateInputs() {
         try {
-            int mapWidth = Integer.parseInt(mapWidthField.getText());
-            int mapHeight = Integer.parseInt(mapHeightField.getText());
-            int numPlantsStart = Integer.parseInt(numPlantsStartField.getText());
-            int energyBoost = Integer.parseInt(energyBoostField.getText());
-            int numPlantsGrow = Integer.parseInt(numPlantsGrowField.getText());
-            int numAnimalsStart = Integer.parseInt(numAnimalsStartField.getText());
-            int energyValueStart = Integer.parseInt(energyValueStartField.getText());
-            int minEnergyReproduce = Integer.parseInt(minEnergyReproduceField.getText());
-            int energyTransfer = Integer.parseInt(energyTransferField.getText());
-            int minMutations = Integer.parseInt(minMutationsField.getText());
-            int maxMutations = Integer.parseInt(maxMutationsField.getText());
-            int genomeLength = Integer.parseInt(genomeLengthField.getText());
+            int mapWidth = parseInt(mapWidthField.getText());
+            int mapHeight = parseInt(mapHeightField.getText());
+            int numPlantsStart = parseInt(numPlantsStartField.getText());
+            int energyBoost = parseInt(energyBoostField.getText());
+            int numPlantsGrow = parseInt(numPlantsGrowField.getText());
+            int numAnimalsStart = parseInt(numAnimalsStartField.getText());
+            int energyValueStart = parseInt(energyValueStartField.getText());
+            int minEnergyReproduce = parseInt(minEnergyReproduceField.getText());
+            int energyTransfer = parseInt(energyTransferField.getText());
+            int minMutations = parseInt(minMutationsField.getText());
+            int maxMutations = parseInt(maxMutationsField.getText());
+            int genomeLength = parseInt(genomeLengthField.getText());
 
             if (mapWidth <= 0 || mapHeight <= 0 || energyBoost <= 0 || numPlantsGrow <= 0 || numAnimalsStart <= 0 ||
                     energyValueStart <= 0 || minEnergyReproduce <= 0 || energyTransfer <= 0 || minMutations < 0 ||

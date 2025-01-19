@@ -3,13 +3,29 @@ package agh.ics.darwin;
 import agh.ics.darwin.model.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class Simulation {
+public class Simulation implements Runnable {
     private final Parameters parameters;
     private final WorldMap map;
-    private final static int MAX_ITERATIONS = 50; //TEMPORARY SOLUTION
+    private final static int MAX_ITERATIONS = 10; //TEMPORARY SOLUTION
+    private int sleepDuration = 700;
+    private final List<DailyStatistics> dailyStatistics = new ArrayList<>();
+    private int day = 0;
+
+    public void addDailyStatistics(DailyStatistics stats) {
+        dailyStatistics.add(stats);
+    }
+
+    public List<DailyStatistics> getDailyStatistics() {
+        return dailyStatistics;
+    }
+
+    public void setSleepDuration(int sleepDuration) {
+        this.sleepDuration = sleepDuration;
+    }
 
     public Simulation(Parameters parameters) {
         this.parameters = parameters;
@@ -33,6 +49,13 @@ public class Simulation {
             eatPlants();
             reproduceAnimals();
             growNewPlants();
+            day++;
+            map.notifyObservers();
+            try {
+                Thread.sleep(sleepDuration);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -173,5 +196,9 @@ public class Simulation {
 
     public WorldMap getMap() {
         return map;
+    }
+
+    public int getDay() {
+        return day;
     }
 }

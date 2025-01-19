@@ -15,6 +15,17 @@ public class WorldMap {
     private final int jungleTop;
     private final Map<Vector2d, ArrayList<Animal>> animals = new HashMap<>();
     private final Map<Vector2d, Plant> plants = new HashMap<>();
+    protected final List<MapChangeListener> observers = new ArrayList<>();
+
+    public void notifyObservers() {
+        for (MapChangeListener observer : observers) {
+            observer.mapChanged(this);
+        }
+    }
+
+    public void addObserver(MapChangeListener observer) { observers.add(observer); }
+
+    public void removeObserver(MapChangeListener observer) { observers.remove(observer); }
 
     public WorldMap(int width, int height, int startPlants, PlantGrowthVariant plantGrowthVariant, BehaviourVariant behaviourVariant) {
         this.width = width;
@@ -144,6 +155,38 @@ public class WorldMap {
 
     public Map<Vector2d, ArrayList<Animal>> getAnimals() {
         return animals;
+    }
+
+    public Map<Vector2d, ArrayList<Animal>> getDeadAnimals() {
+        Map<Vector2d, ArrayList<Animal>> deadAnimals = new HashMap<>();
+        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : animals.entrySet()) {
+            ArrayList<Animal> deadList = new ArrayList<>();
+            for (Animal animal : entry.getValue()) {
+                if (animal.getEnergy() == 0) {
+                    deadList.add(animal);
+                }
+            }
+            if (!deadList.isEmpty()) {
+                deadAnimals.put(entry.getKey(), deadList);
+            }
+        }
+        return deadAnimals;
+    }
+
+    public Map<Vector2d, ArrayList<Animal>> getLivingAnimals() {
+        Map<Vector2d, ArrayList<Animal>> livingAnimals = new HashMap<>();
+        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : animals.entrySet()) {
+            ArrayList<Animal> deadList = new ArrayList<>();
+            for (Animal animal : entry.getValue()) {
+                if (animal.getEnergy() > 0) {
+                    deadList.add(animal);
+                }
+            }
+            if (!deadList.isEmpty()) {
+                livingAnimals.put(entry.getKey(), deadList);
+            }
+        }
+        return livingAnimals;
     }
 
     public Map<Vector2d, Plant> getPlants() {
