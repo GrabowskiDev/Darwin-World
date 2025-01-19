@@ -91,6 +91,14 @@ public class Animal implements WorldElement {
         return this.numberOfChildren;
     }
 
+    public void addChildren() {
+        this.numberOfChildren += 1;
+    }
+
+    public void incrementAge() {
+        this.age += 1;
+    }
+
     public Genes getGenes() {
         return genes;
     }

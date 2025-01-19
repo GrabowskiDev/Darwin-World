@@ -6,14 +6,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Simulation implements Runnable {
     private final Parameters parameters;
     private final WorldMap map;
-    private final static int MAX_ITERATIONS = 10; //TEMPORARY SOLUTION
+    private final static int MAX_ITERATIONS = 50; //TEMPORARY SOLUTION
     private int sleepDuration = 700;
     private final List<DailyStatistics> dailyStatistics = new ArrayList<>();
     private int day = 0;
+    private boolean isPaused = false;
+    private boolean isStarted = false;
+    private volatile boolean isFinished = false;
+
 
     public void addDailyStatistics(DailyStatistics stats) {
         dailyStatistics.add(stats);
@@ -42,8 +47,38 @@ public class Simulation implements Runnable {
         }
     }
 
+    public boolean isStarted() {
+        return isStarted;
+    }
+
+    public synchronized void pause() {
+        isPaused = true;
+    }
+
+    public synchronized void resume() {
+        isPaused = false;
+        notify();
+    }
+
+    public synchronized void stop() {
+        isFinished = true;
+    }
+
     public void run() {
-        for (int i = 0; i < MAX_ITERATIONS; i++) {
+        isStarted = true;
+        while (true) {
+            if (isFinished) {
+                break;
+            }
+            synchronized (this) {
+                while (isPaused) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             removeDeadAnimals();
             moveAnimals();
             eatPlants();
@@ -59,10 +94,10 @@ public class Simulation implements Runnable {
         }
     }
 
-    private void removeDeadAnimals() {
+    private synchronized void removeDeadAnimals() {
         ArrayList <Animal> animalsToRemove = new ArrayList<>();
-        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
-            ArrayList<Animal> animals = entry.getValue();
+        for (Map.Entry<Vector2d, CopyOnWriteArrayList<Animal>> entry : map.getAnimals().entrySet()) {
+            CopyOnWriteArrayList<Animal> animals = entry.getValue();
             for (Animal animal : animals) {
                 if (animal.getEnergy() <= 0) {
                     animalsToRemove.add(animal);
@@ -76,8 +111,8 @@ public class Simulation implements Runnable {
 
     private void moveAnimals() {
         ArrayList <Animal> animalsToMove = new ArrayList<>();
-        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
-            ArrayList<Animal> animals = entry.getValue();
+        for (Map.Entry<Vector2d, CopyOnWriteArrayList<Animal>> entry : map.getAnimals().entrySet()) {
+            CopyOnWriteArrayList<Animal> animals = entry.getValue();
             for (Animal animal : animals) {
                 animalsToMove.add(animal);
             }
@@ -85,19 +120,22 @@ public class Simulation implements Runnable {
         for (Animal animal : animalsToMove) {
             map.move(animal);
             animal.loseEnergy(1);
+            animal.incrementAge();
         }
     }
 
-    private void eatPlants() {
-        ArrayList <Plant> plantsToRemove = new ArrayList<>();
+    private synchronized void eatPlants() {
+        ArrayList<Plant> plantsToRemove = new ArrayList<>();
         for (Map.Entry<Vector2d, Plant> entry : map.getPlants().entrySet()) {
             Vector2d plantPosition = entry.getKey();
             Plant plant = entry.getValue();
             if (map.isOccupiedByAnimal(plantPosition)) {
-                ArrayList<Animal> animals = map.getAnimals().get(plantPosition);
-                Animal animal = animals.getFirst();
-                animal.gainEnergy(parameters.plantEnergy());
-                plantsToRemove.add(plant);
+                CopyOnWriteArrayList<Animal> animals = map.getAnimals().get(plantPosition);
+                if (animals != null && !animals.isEmpty()) {
+                    Animal animal = animals.get(0); // Assuming the list is sorted by strength
+                    animal.gainEnergy(parameters.plantEnergy());
+                    plantsToRemove.add(plant);
+                }
             }
         }
         for (Plant plant : plantsToRemove) {
@@ -107,8 +145,8 @@ public class Simulation implements Runnable {
 
     private void reproduceAnimals() {
         ArrayList <Animal> animalsToPlace = new ArrayList<>();
-        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
-            ArrayList<Animal> animals = entry.getValue();
+        for (Map.Entry<Vector2d, CopyOnWriteArrayList<Animal>> entry : map.getAnimals().entrySet()) {
+            CopyOnWriteArrayList<Animal> animals = entry.getValue();
             for (int i = 0; i < animals.size()-1; i+=2) {
                 Animal parent1 = animals.get(i);
                 Animal parent2 = animals.get(i+1);
@@ -123,6 +161,8 @@ public class Simulation implements Runnable {
                     animalsToPlace.add(child);
                     parent1.loseEnergy(parameters.energyUsedToBreed());
                     parent2.loseEnergy(parameters.energyUsedToBreed());
+                    parent1.addChildren();
+                    parent2.addChildren();
                 } else {
                     break;
                 }

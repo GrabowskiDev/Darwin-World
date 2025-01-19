@@ -4,6 +4,8 @@ import agh.ics.darwin.model.variants.BehaviourVariant;
 import agh.ics.darwin.model.variants.PlantGrowthVariant;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class WorldMap {
     private final int width;
@@ -13,8 +15,9 @@ public class WorldMap {
     private final BehaviourVariant behaviourVariant;
     private final int jungleBottom;
     private final int jungleTop;
-    private final Map<Vector2d, ArrayList<Animal>> animals = new HashMap<>();
-    private final Map<Vector2d, Plant> plants = new HashMap<>();
+    private final ConcurrentHashMap<Vector2d, CopyOnWriteArrayList<Animal>> animals = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Vector2d, CopyOnWriteArrayList<Animal>> deadAnimals = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Vector2d, Plant> plants = new ConcurrentHashMap<>();
     protected final List<MapChangeListener> observers = new ArrayList<>();
 
     public void notifyObservers() {
@@ -84,7 +87,7 @@ public class WorldMap {
         return height;
     }
 
-    public void place(WorldElement element) {
+    public synchronized void place(WorldElement element) {
         Vector2d position = element.getPosition();
         if (!insideBorders(position)) {
             throw new IllegalArgumentException("Position out of borders");
@@ -97,7 +100,7 @@ public class WorldMap {
                         .thenComparingInt(Animal::getNumberOfChildren)
                         .thenComparing(a -> new Random().nextInt()));
             } else {
-                animals.put(position, new ArrayList<>(Collections.singletonList((Animal) element)));
+                animals.put(position, new CopyOnWriteArrayList<>(Collections.singletonList((Animal) element)));
             }
         } else if (element.getClass() == Plant.class) {
             if (isOccupiedByPlant(position)) {
@@ -108,30 +111,31 @@ public class WorldMap {
         }
     }
 
-    public void remove(WorldElement element) {
+    public synchronized void remove(WorldElement element) {
         Vector2d position = element.getPosition();
         if (element instanceof Animal) {
-            ArrayList<Animal> animalsArray = animals.get(position);
-            if (animalsArray.contains(element)) {
+            CopyOnWriteArrayList<Animal> animalsArray = animals.get(position);
+            if (animalsArray != null && animalsArray.contains(element)) {
                 if (animalsArray.size() == 1) {
                     animals.remove(position);
                 } else {
                     animalsArray.remove(element);
                 }
+                deadAnimals.computeIfAbsent(position, k -> new CopyOnWriteArrayList<>()).add((Animal) element);
             }
         } else if (element instanceof Plant && plants.get(position) == element) {
             plants.remove(position, element);
         }
     }
 
-    public void move(Animal animal) {
+    public synchronized void move(Animal animal) {
         Vector2d oldPosition = animal.getPosition();
         if (!animals.containsKey(oldPosition) || !animals.get(oldPosition).contains(animal)) {
             throw new IllegalArgumentException("Animal does not belong to this WorldMap");
         }
         animal.move(this);
         Vector2d newPosition = animal.getPosition();
-        ArrayList<Animal> animalsArray = animals.get(oldPosition);
+        CopyOnWriteArrayList<Animal> animalsArray = animals.get(oldPosition);
         if (animalsArray.size() == 1) {
             animals.remove(oldPosition);
         } else {
@@ -153,45 +157,12 @@ public class WorldMap {
         return position.follows(new Vector2d(0, 0)) && position.precedes(new Vector2d(width-1, height-1));
     }
 
-    public Map<Vector2d, ArrayList<Animal>> getAnimals() {
+    public ConcurrentHashMap<Vector2d, CopyOnWriteArrayList<Animal>> getAnimals() {
         return animals;
     }
 
-    public Map<Vector2d, ArrayList<Animal>> getDeadAnimals() {
-        Map<Vector2d, ArrayList<Animal>> deadAnimals = new HashMap<>();
-        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : animals.entrySet()) {
-            ArrayList<Animal> deadList = new ArrayList<>();
-            for (Iterator<Animal> iterator = entry.getValue().iterator(); iterator.hasNext(); ) {
-                Animal animal = iterator.next();
-                if (animal.getEnergy() == 0) {
-                    deadList.add(animal);
-                    iterator.remove(); // Safely remove the dead animal
-                }
-            }
-            if (!deadList.isEmpty()) {
-                deadAnimals.put(entry.getKey(), deadList);
-            }
-        }
+    public ConcurrentHashMap<Vector2d, CopyOnWriteArrayList<Animal>> getDeadAnimals() {
         return deadAnimals;
-    }
-
-    public Map<Vector2d, ArrayList<Animal>> getLivingAnimals() {
-        Map<Vector2d, ArrayList<Animal>> livingAnimals = new HashMap<>();
-        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : animals.entrySet()) {
-            ArrayList<Animal> livingList = new ArrayList<>();
-            for (Iterator<Animal> iterator = entry.getValue().iterator(); iterator.hasNext(); ) {
-                Animal animal = iterator.next();
-                if (animal.getEnergy() > 0) {
-                    livingList.add(animal);
-                } else {
-                    iterator.remove(); // Safely remove the dead animal
-                }
-            }
-            if (!livingList.isEmpty()) {
-                livingAnimals.put(entry.getKey(), livingList);
-            }
-        }
-        return livingAnimals;
     }
 
     public Map<Vector2d, Plant> getPlants() {

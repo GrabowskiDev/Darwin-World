@@ -61,6 +61,7 @@ public class SettingsPresenter {
                 simulationStage.setTitle("Simulation");
                 Scene scene = new Scene(root, 1000, 800);
                 simulationStage.setScene(scene);
+                simulationPresenter.setStage(simulationStage);
                 simulationStage.show();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -87,26 +88,6 @@ public class SettingsPresenter {
                 parseInt(genomeLengthField.getText()),
                 Objects.equals(behaviorVariantBox.getValue(), "Full Predestination") ? BehaviourVariant.Predestination : BehaviourVariant.Madness // You can add a dropdown in the FXML to select this
         );
-    }
-
-    private void displayMap(WorldMap map, VBox vbox) {
-        StringBuilder mapDisplay = new StringBuilder();
-        for (int y = 0; y < map.getHeight(); y++) {
-            for (int x = 0; x < map.getWidth(); x++) {
-                Vector2d position = new Vector2d(x, y);
-                if (map.isOccupiedByPlant(position)) {
-                    mapDisplay.append("* ");
-                } else if (map.isOccupiedByAnimal(position)) {
-                    Animal animal = map.getAnimals().get(position).get(0);
-                    mapDisplay.append(getDirectionArrow(animal.getDirection())).append(" ");
-                } else {
-                    mapDisplay.append(". ");
-                }
-            }
-            mapDisplay.append("\n");
-        }
-        Label mapLabel = new Label(mapDisplay.toString());
-        vbox.getChildren().add(mapLabel);
     }
 
     private String getDirectionArrow(MapDirection direction) {
