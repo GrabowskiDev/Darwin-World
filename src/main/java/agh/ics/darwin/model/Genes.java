@@ -1,6 +1,7 @@
 package agh.ics.darwin.model;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 
 public class Genes {
@@ -86,5 +87,22 @@ public class Genes {
 
     public int[] getGenes() {
         return genes;
+    }
+
+    public int getIdx() {
+        return index;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Genes genes1 = (Genes) o;
+        return Arrays.equals(genes, genes1.genes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(genes);
     }
 }

@@ -45,13 +45,13 @@ class MapDirectionTest {
 
     @Test
     void toUnitVector() {
-        assertEquals(new Vector2d(0, 1), MapDirection.NORTH.toUnitVector());
-        assertEquals(new Vector2d(1, 1), MapDirection.NORTHEAST.toUnitVector());
+        assertEquals(new Vector2d(0, -1), MapDirection.NORTH.toUnitVector());
+        assertEquals(new Vector2d(1, -1), MapDirection.NORTHEAST.toUnitVector());
         assertEquals(new Vector2d(1, 0), MapDirection.EAST.toUnitVector());
-        assertEquals(new Vector2d(1, -1), MapDirection.SOUTHEAST.toUnitVector());
-        assertEquals(new Vector2d(0, -1), MapDirection.SOUTH.toUnitVector());
-        assertEquals(new Vector2d(-1, -1), MapDirection.SOUTHWEST.toUnitVector());
+        assertEquals(new Vector2d(1, 1), MapDirection.SOUTHEAST.toUnitVector());
+        assertEquals(new Vector2d(0, 1), MapDirection.SOUTH.toUnitVector());
+        assertEquals(new Vector2d(-1, 1), MapDirection.SOUTHWEST.toUnitVector());
         assertEquals(new Vector2d(-1, 0), MapDirection.WEST.toUnitVector());
-        assertEquals(new Vector2d(-1, 1), MapDirection.NORTHWEST.toUnitVector());
+        assertEquals(new Vector2d(-1, -1), MapDirection.NORTHWEST.toUnitVector());
     }
 }

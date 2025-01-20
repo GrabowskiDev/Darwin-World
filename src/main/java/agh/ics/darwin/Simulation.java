@@ -1,15 +1,40 @@
 package agh.ics.darwin;
 
 import agh.ics.darwin.model.*;
+import agh.ics.darwin.model.variants.PlantGrowthVariant;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class Simulation {
+public class Simulation implements Runnable {
+    private final Lock lock = new ReentrantLock();
+    private final Condition pausedCondition = lock.newCondition();
     private final Parameters parameters;
     private final WorldMap map;
     private final static int MAX_ITERATIONS = 50; //TEMPORARY SOLUTION
+    private int sleepDuration = 700;
+    private final List<DailyStatistics> dailyStatistics = Collections.synchronizedList(new ArrayList<>());
+    private final AtomicInteger day = new AtomicInteger(0);
+    private volatile boolean isPaused = false;
+    private volatile boolean isStarted = false;
+    private volatile boolean isFinished = false;
+
+    public void addDailyStatistics(DailyStatistics stats) {
+        dailyStatistics.add(stats);
+    }
+
+    public List<DailyStatistics> getDailyStatistics() {
+        return dailyStatistics;
+    }
+
+    public void setSleepDuration(int sleepDuration) {
+        this.sleepDuration = sleepDuration;
+    }
 
     public Simulation(Parameters parameters) {
         this.parameters = parameters;
@@ -17,8 +42,8 @@ public class Simulation {
         for (int i = 0; i < parameters.startAnimals(); i++) {
             Vector2d animalPosition = new Vector2d((int) (Math.random() * parameters.width()), (int) (Math.random() * parameters.height()));
             int[] genesArray = new int[parameters.genomeLength()];
-            for (int j=0; j<genesArray.length; j++) {
-                genesArray[j] = new java.util.Random().nextInt(8);
+            for (int j = 0; j < genesArray.length; j++) {
+                genesArray[j] = new Random().nextInt(8);
             }
 
             Animal animal = new Animal(animalPosition, getRandomMapDirection(), parameters.startEnergy(), new Genes(genesArray));
@@ -26,138 +51,305 @@ public class Simulation {
         }
     }
 
+    public boolean isStarted() {
+        return isStarted;
+    }
+
+    public synchronized void pause() {
+        lock.lock();
+        try {
+            isPaused = true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public synchronized void resume() {
+        lock.lock();
+        try {
+            isPaused = false;
+            pausedCondition.signal();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public synchronized void stop() {
+        lock.lock();
+        try {
+            isFinished = true;
+            pausedCondition.signal();
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public void run() {
-        for (int i = 0; i < MAX_ITERATIONS; i++) {
+        isStarted = true;
+        while (true) {
+            lock.lock();
+            try {
+                while (isPaused) {
+                    pausedCondition.await();
+                }
+                if (isFinished) {
+                    break;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                lock.unlock();
+            }
             removeDeadAnimals();
             moveAnimals();
             eatPlants();
             reproduceAnimals();
             growNewPlants();
+            day.incrementAndGet();
+            map.notifyObservers();
+            try {
+                Thread.sleep(sleepDuration);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private void removeDeadAnimals() {
-        ArrayList <Animal> animalsToRemove = new ArrayList<>();
-        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
-            ArrayList<Animal> animals = entry.getValue();
+        map.getAnimals().values().parallelStream().forEach(animals -> {
+            List<Animal> deadAnimals = new ArrayList<>();
             for (Animal animal : animals) {
                 if (animal.getEnergy() <= 0) {
-                    animalsToRemove.add(animal);
+                    animal.setDayOfDeath(day.get());
+                    deadAnimals.add(animal);
                 }
             }
-        }
-        for (Animal animal : animalsToRemove) {
-            map.remove(animal);
-        }
+            if (!deadAnimals.isEmpty()) {
+                animals.removeAll(deadAnimals);
+                deadAnimals.forEach(map::remove);
+            }
+        });
     }
 
     private void moveAnimals() {
-        ArrayList <Animal> animalsToMove = new ArrayList<>();
-        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
-            ArrayList<Animal> animals = entry.getValue();
-            for (Animal animal : animals) {
-                animalsToMove.add(animal);
-            }
-        }
-        for (Animal animal : animalsToMove) {
+        map.getAnimals().values().parallelStream().flatMap(List::stream).forEach(animal -> {
             map.move(animal);
             animal.loseEnergy(1);
-        }
+            animal.incrementAge();
+        });
     }
 
     private void eatPlants() {
-        ArrayList <Plant> plantsToRemove = new ArrayList<>();
-        for (Map.Entry<Vector2d, Plant> entry : map.getPlants().entrySet()) {
-            Vector2d plantPosition = entry.getKey();
-            Plant plant = entry.getValue();
-            if (map.isOccupiedByAnimal(plantPosition)) {
-                ArrayList<Animal> animals = map.getAnimals().get(plantPosition);
-                Animal animal = animals.getFirst();
-                animal.gainEnergy(parameters.plantEnergy());
-                plantsToRemove.add(plant);
-            }
-        }
-        for (Plant plant : plantsToRemove) {
-            map.remove(plant);
+        if (parameters.plantGrowth() == PlantGrowthVariant.Equator) {
+            map.getPlants().entrySet().parallelStream().forEach(entry -> {
+                Vector2d plantPosition = entry.getKey();
+                Plant plant = (Plant) entry.getValue();
+                if (map.isOccupiedByAnimal(plantPosition)) {
+                    CopyOnWriteArrayList<Animal> animals = map.getAnimals().get(plantPosition);
+                    if (animals != null && !animals.isEmpty()) {
+                        Animal animal = animals.get(0); // Assuming the list is sorted by strength
+                        animal.gainEnergy(parameters.plantEnergy());
+                        animal.addPlantsEaten();
+                        map.remove(plant);
+                    }
+                }
+            });
+        } else {
+            //square jungle
+            map.getPlants().entrySet().parallelStream().forEach(entry -> {
+                Vector2d plantPosition = entry.getKey();
+                WorldElement plantElement = entry.getValue();
+                if (plantElement.getClass() == Plant.class) {
+                    if (map.isOccupiedByAnimal(plantPosition)) {
+                        CopyOnWriteArrayList<Animal> animals = map.getAnimals().get(plantPosition);
+                        if (animals != null && !animals.isEmpty()) {
+                            Animal animal = animals.get(0); // Assuming the list is sorted by strength
+                            animal.gainEnergy(parameters.plantEnergy());
+                            animal.addPlantsEaten();
+                            map.remove(plantElement);
+                        }
+                    }
+                } else if (plantElement.getClass() == SuperPlant.class) {
+                    List<Animal> animalsArray = new ArrayList<>();
+
+                    Vector2d plantPosition2 = plantPosition.add(new Vector2d(1,0));
+                    Vector2d plantPosition3 = plantPosition.add(new Vector2d(1,1));
+                    Vector2d plantPosition4 = plantPosition.add(new Vector2d(0,1));
+
+                    if (map.isOccupiedByAnimal(plantPosition)) {
+                        CopyOnWriteArrayList<Animal> animals = map.getAnimals().get(plantPosition);
+                        if (animals != null && !animals.isEmpty()) {
+                            Animal animal = animals.get(0);
+                            animalsArray.add(animal);
+                        }
+                    }
+                    if (map.isOccupiedByAnimal(plantPosition2)) {
+                        CopyOnWriteArrayList<Animal> animals = map.getAnimals().get(plantPosition2);
+                        if (animals != null && !animals.isEmpty()) {
+                            Animal animal = animals.get(0);
+                            animalsArray.add(animal);
+                        }
+                    }
+                    if (map.isOccupiedByAnimal(plantPosition3)) {
+                        CopyOnWriteArrayList<Animal> animals = map.getAnimals().get(plantPosition3);
+                        if (animals != null && !animals.isEmpty()) {
+                            Animal animal = animals.get(0);
+                            animalsArray.add(animal);
+                        }
+                    }
+                    if (map.isOccupiedByAnimal(plantPosition4)) {
+                        CopyOnWriteArrayList<Animal> animals = map.getAnimals().get(plantPosition4);
+                        if (animals != null && !animals.isEmpty()) {
+                            Animal animal = animals.get(0);
+                            animalsArray.add(animal);
+                        }
+                    }
+
+                    animalsArray.sort(Comparator.comparingInt(Animal::getEnergy).reversed()
+                            .thenComparingInt(Animal::getAge).reversed()
+                            .thenComparingInt(Animal::getNumberOfChildren).reversed()
+                            .thenComparing(a -> new Random().nextInt()));
+
+                    if (animalsArray.isEmpty()) {return;}
+                    Animal animal = animalsArray.get(0);
+                    animal.gainEnergy(parameters.plantEnergy() * 3);
+                    animal.addPlantsEaten();
+                    map.remove(plantElement);
+                }
+            });
         }
     }
 
     private void reproduceAnimals() {
-        ArrayList <Animal> animalsToPlace = new ArrayList<>();
-        for (Map.Entry<Vector2d, ArrayList<Animal>> entry : map.getAnimals().entrySet()) {
-            ArrayList<Animal> animals = entry.getValue();
-            for (int i = 0; i < animals.size()-1; i+=2) {
+        map.getAnimals().values().parallelStream().forEach(animals -> {
+            for (int i = 0; i < animals.size() - 1; i += 2) {
                 Animal parent1 = animals.get(i);
-                Animal parent2 = animals.get(i+1);
+                Animal parent2 = animals.get(i + 1);
                 if (parent2.getEnergy() >= parameters.energyToBeFed()) {
-                    //Genes
                     int totalEnergy = parent1.getEnergy() + parent2.getEnergy();
-                    int parent1Len = (int) Math.ceil(((double) parent1.getEnergy()/totalEnergy ) * parameters.genomeLength());
+                    int parent1Len = (int) Math.ceil(((double) parent1.getEnergy() / totalEnergy) * parameters.genomeLength());
                     int parent2Len = parameters.genomeLength() - parent1Len;
                     Genes childGenes = new Genes(parent1.getGenes().getGenes(), parent2.getGenes().getGenes(), parent1Len, parent2Len, parameters.minMutations(), parameters.maxMutations());
 
-                    Animal child = new Animal(parent1.getPosition(), getRandomMapDirection(), parameters.energyUsedToBreed() * 2, childGenes);
-                    animalsToPlace.add(child);
+                    Animal child = new Animal(parent1.getPosition(), getRandomMapDirection(), parameters.energyUsedToBreed() * 2, childGenes, parent1.getId(), parent2.getId());
+                    map.place(child);
                     parent1.loseEnergy(parameters.energyUsedToBreed());
                     parent2.loseEnergy(parameters.energyUsedToBreed());
+                    parent1.addChildren();
+                    parent2.addChildren();
+                    handleDescendants(child);
                 } else {
                     break;
                 }
             }
-        }
+        });
+    }
 
-        for (Animal animal : animalsToPlace) {
-            map.place(animal);
+    private void handleDescendants(Animal child) {
+        List<Integer> parents = child.getParentsId();
+        if (parents.get(0) != null) {
+            Animal parent = map.getAnimalById(parents.get(0));
+            if (parent != null) {
+                parent.addDescendants(1);
+                handleDescendants(parent);
+            }
+        }
+        if (parents.get(1) != null) {
+            Animal parent = map.getAnimalById(parents.get(1));
+            if (parent != null) {
+                parent.addDescendants(1);
+                handleDescendants(parent);
+            }
         }
     }
 
     private void growNewPlants() {
-        int jungleBottom = map.getJungleBottom();
-        int jungleHeight = map.getJungleTop() - map.getJungleBottom() + 1;
+        if (parameters.plantGrowth() == PlantGrowthVariant.Equator) {
+            int jungleBottom = map.getJungleBottom();
+            int jungleHeight = map.getJungleTop() - map.getJungleBottom() + 1;
 
-        RandomUniquePositionGenerator junglePositionGenerator = new RandomUniquePositionGenerator(parameters.width(), jungleHeight);
-        RandomUniquePositionGenerator outsideJunglePositionGenerator = new RandomUniquePositionGenerator(parameters.width(), parameters.height() - jungleHeight);
-        Random random = new Random();
+            RandomUniquePositionGenerator junglePositionGenerator = new RandomUniquePositionGenerator(parameters.width(), jungleHeight);
+            RandomUniquePositionGenerator outsideJunglePositionGenerator = new RandomUniquePositionGenerator(parameters.width(), parameters.height() - jungleHeight);
+            Random random = new Random();
 
-        int i = 0;
-        while (i < parameters.plantsPerDay()) {
-            boolean placeOutside = false;
-            if (random.nextDouble() < 0.8) {
-                // Place plant inside the jungle
-                if (!junglePositionGenerator.iterator().hasNext()) {
-                    placeOutside = true;
+            int i = 0;
+            while (i < parameters.plantsPerDay()) {
+                boolean placeOutside = false;
+                if (random.nextDouble() < 0.8) {
+                    if (!junglePositionGenerator.iterator().hasNext()) {
+                        placeOutside = true;
+                    } else {
+                        Vector2d plantPosition = junglePositionGenerator.iterator().next();
+                        plantPosition = new Vector2d(plantPosition.getX(), plantPosition.getY() + jungleBottom);
+                        if (!map.isOccupiedByPlant(plantPosition)) {
+                            Plant plant = new Plant(plantPosition);
+                            map.place(plant);
+                            i++;
+                        }
+                    }
                 } else {
-                    Vector2d plantPosition = junglePositionGenerator.iterator().next();
-                    plantPosition = new Vector2d(plantPosition.getX(), plantPosition.getY() + jungleBottom);
+                    placeOutside = true;
+                }
+                if (placeOutside) {
+                    if (!outsideJunglePositionGenerator.iterator().hasNext()) {
+                        break;
+                    }
+                    Vector2d plantPosition = outsideJunglePositionGenerator.iterator().next();
+                    if (plantPosition.getY() >= jungleBottom) {
+                        plantPosition = new Vector2d(plantPosition.getX(), plantPosition.getY() + jungleHeight);
+                    }
                     if (!map.isOccupiedByPlant(plantPosition)) {
                         Plant plant = new Plant(plantPosition);
                         map.place(plant);
                         i++;
                     }
                 }
-            } else {
-                placeOutside = true;
             }
-            if (placeOutside) {
-                // Place plant outside the jungle
-                if (!outsideJunglePositionGenerator.iterator().hasNext()) {
-                    break;
-                }
-                Vector2d plantPosition = outsideJunglePositionGenerator.iterator().next();
-                if (plantPosition.getY() >= jungleBottom) {
-                    plantPosition = new Vector2d(plantPosition.getX(), plantPosition.getY() + jungleHeight);
-                }
-                if (!map.isOccupiedByPlant(plantPosition)) {
-                    Plant plant = new Plant(plantPosition);
-                    map.place(plant);
-                    i++;
+        } else {
+            //square jungle
+            int squareJungleLength = map.getSquareJungleLength();
+            Vector2d squareJunglePosition = map.getSquareJunglePosition();
+
+            RandomUniquePositionGenerator positionGenerator = new RandomUniquePositionGenerator(parameters.width(), parameters.height());
+            RandomUniquePositionGenerator junglePositionGenerator = new RandomUniquePositionGenerator(squareJungleLength, squareJungleLength);
+            Random random = new Random();
+            for (int i = 0; i < parameters.plantsPerDay(); i++) {
+                if (random.nextDouble() < 0.8) {
+                    while (positionGenerator.iterator().hasNext()) {
+                        Vector2d plantPosition = positionGenerator.iterator().next();
+                        if (!map.isOccupiedByPlant(plantPosition)) {
+                            Plant plant = new Plant(plantPosition);
+                            map.place(plant);
+                            break;
+                        }
+                    }
+                } else {
+                    while (junglePositionGenerator.iterator().hasNext()) {
+                        Vector2d plantPosition = (junglePositionGenerator.iterator().next()).add(squareJunglePosition);
+                        if (plantPosition.getX() == squareJunglePosition.getX() + squareJungleLength - 1) {
+                            plantPosition = new Vector2d(plantPosition.getX() - 1, plantPosition.getY());
+                        }
+                        if (plantPosition.getY() == squareJunglePosition.getY() + squareJungleLength - 1) {
+                            plantPosition = new Vector2d(plantPosition.getX(), plantPosition.getY() - 1);
+                        }
+
+                        Vector2d plantPosition2 = plantPosition.add(new Vector2d(1, 0));
+                        Vector2d plantPosition3 = plantPosition.add(new Vector2d(1, 1));
+                        Vector2d plantPosition4 = plantPosition.add(new Vector2d(0, 1));
+
+                        if (!map.isOccupiedByPlant(plantPosition) && !map.isOccupiedByPlant(plantPosition2) && !map.isOccupiedByPlant(plantPosition3) && !map.isOccupiedByPlant(plantPosition4)) {
+                            SuperPlant superPlant = new SuperPlant(plantPosition);
+                            map.place(superPlant);
+                            break;
+                        }
+                    }
                 }
             }
         }
     }
 
-    private MapDirection getRandomMapDirection() { //TODO: Create an util with functions like this
-        int random = new java.util.Random().nextInt(8);
+    private MapDirection getRandomMapDirection() {
+        int random = new Random().nextInt(8);
         return switch (random) {
             case 0 -> MapDirection.NORTH;
             case 1 -> MapDirection.NORTHEAST;
@@ -173,5 +365,9 @@ public class Simulation {
 
     public WorldMap getMap() {
         return map;
+    }
+
+    public int getDay() {
+        return day.get();
     }
 }

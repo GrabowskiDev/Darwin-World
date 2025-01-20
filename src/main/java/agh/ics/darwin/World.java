@@ -7,21 +7,22 @@ import agh.ics.darwin.model.variants.BehaviourVariant;
 import agh.ics.darwin.model.variants.MapVariant;
 import agh.ics.darwin.model.variants.MutationVariant;
 import agh.ics.darwin.model.variants.PlantGrowthVariant;
+import javafx.application.Application;
 
 public class World {
     public static void main(String[] args) {
-        System.out.println("Hello, World!");
+        Application.launch(SimulationApp.class, args);
 
-        Parameters parameters = testParameters();
-        Simulation simulation = new Simulation(parameters);
-        WorldMap initMap = simulation.getMap();
-        System.out.println("Initial map:");
-        initMap.getAnimals().forEach((k, v) -> System.out.println(k + " -> " + v));
-
-        simulation.run();
-        WorldMap finalMap = simulation.getMap();
-        System.out.println("Final map:");
-        finalMap.getAnimals().forEach((k, v) -> System.out.println(k + " -> " + v));
+//        Parameters parameters = testParameters();
+//        Simulation simulation = new Simulation(parameters);
+//        WorldMap initMap = simulation.getMap();
+//        System.out.println("Initial map:");
+//        initMap.getAnimals().forEach((k, v) -> System.out.println(k + " -> " + v));
+//
+//        simulation.run();
+//        WorldMap finalMap = simulation.getMap();
+//        System.out.println("Final map:");
+//        finalMap.getAnimals().forEach((k, v) -> System.out.println(k + " -> " + v));
 
     }
 

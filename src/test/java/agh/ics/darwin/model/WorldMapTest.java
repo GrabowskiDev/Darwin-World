@@ -51,7 +51,7 @@ public class WorldMapTest {
         Animal animal = new Animal(new Vector2d(2, 3), MapDirection.NORTH,10, new Genes(new int[]{0, 0, 0, 0, 0, 0, 0, 0}));
         map.place(animal);
         map.move(animal);
-        assertEquals(new Vector2d(2, 4), animal.getPosition());
+        assertEquals(new Vector2d(2, 2), animal.getPosition());
     }
 
     @Test
