@@ -185,5 +185,68 @@ public class WorldMapTest {
         // Check if approximately 80% of the plants are in the jungle
         assertTrue(junglePlantCount > outsideJunglePlantCount);
     }
-    //TODO: Test globe functionality
+
+    @Test
+    void testMovingRightOutOfBounds() {
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
+        Animal animal = new Animal(new Vector2d(9, 5), MapDirection.EAST,10, new Genes(new int[]{0}));
+        map.place(animal);
+        map.move(animal);
+        assertEquals(new Vector2d(0, 5), animal.getPosition());
+        assertEquals(MapDirection.EAST, animal.getDirection());
+    }
+
+    @Test
+    void testMovingLeftOutOfBounds() {
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
+        Animal animal = new Animal(new Vector2d(0, 5), MapDirection.WEST,10, new Genes(new int[]{0}));
+        map.place(animal);
+        map.move(animal);
+        assertEquals(new Vector2d(9, 5), animal.getPosition());
+        assertEquals(MapDirection.WEST, animal.getDirection());
+    }
+
+    @Test
+    void testMovingUpOutOfBounds() {
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
+        Animal animal = new Animal(new Vector2d(5, 0), MapDirection.NORTH,10, new Genes(new int[]{0}));
+        Animal animal2 = new Animal(new Vector2d(2, 0), MapDirection.NORTHWEST,10, new Genes(new int[]{0}));
+        Animal animal3 = new Animal(new Vector2d(7, 0), MapDirection.NORTHEAST,10, new Genes(new int[]{0}));
+
+        map.place(animal);
+        map.move(animal);
+        map.place(animal2);
+        map.move(animal2);
+        map.place(animal3);
+        map.move(animal3);
+
+        assertEquals(new Vector2d(5, 0), animal.getPosition());
+        assertEquals(MapDirection.SOUTH, animal.getDirection());
+        assertEquals(new Vector2d(1, 0), animal2.getPosition());
+        assertEquals(MapDirection.SOUTHEAST, animal2.getDirection());
+        assertEquals(new Vector2d(8, 0), animal3.getPosition());
+        assertEquals(MapDirection.SOUTHWEST, animal3.getDirection());
+    }
+
+    @Test
+    void testMovingDownOutOfBounds() {
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
+        Animal animal = new Animal(new Vector2d(5, 9), MapDirection.SOUTH,10, new Genes(new int[]{0}));
+        Animal animal2 = new Animal(new Vector2d(2, 9), MapDirection.SOUTHWEST,10, new Genes(new int[]{0}));
+        Animal animal3 = new Animal(new Vector2d(7, 9), MapDirection.SOUTHEAST,10, new Genes(new int[]{0}));
+
+        map.place(animal);
+        map.move(animal);
+        map.place(animal2);
+        map.move(animal2);
+        map.place(animal3);
+        map.move(animal3);
+
+        assertEquals(new Vector2d(5, 9), animal.getPosition());
+        assertEquals(MapDirection.NORTH, animal.getDirection());
+        assertEquals(new Vector2d(1, 9), animal2.getPosition());
+        assertEquals(MapDirection.NORTHEAST, animal2.getDirection());
+        assertEquals(new Vector2d(8, 9), animal3.getPosition());
+        assertEquals(MapDirection.NORTHWEST, animal3.getDirection());
+    }
 }
