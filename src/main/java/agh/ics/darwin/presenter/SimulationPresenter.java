@@ -2,6 +2,7 @@ package agh.ics.darwin.presenter;
 
 import agh.ics.darwin.Simulation;
 import agh.ics.darwin.model.*;
+import agh.ics.darwin.model.variants.PlantGrowthVariant;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -122,7 +123,12 @@ public class SimulationPresenter implements MapChangeListener {
     private int selectedAnimalIndex = 0;
 
     private ImageView bg;
+    private ImageView bg1;
     private ImageView grass1;
+    private ImageView grass2_0;
+    private ImageView grass2_1;
+    private ImageView grass2_2;
+    private ImageView grass2_3;
 
     private double initialX;
     private double initialY;
@@ -195,7 +201,7 @@ public class SimulationPresenter implements MapChangeListener {
         avgLifespanSeries.setName("Average Lifespan");
         avgChildrenSeries.setName("Average Number of Children");
         statisticsChart.getData().addAll(numAnimalsSeries, numPlantsSeries, numFreeFieldsSeries, avgEnergySeries, avgLifespanSeries, avgChildrenSeries);
-        speedSlider.setMin(1);
+        speedSlider.setMin(80);
         speedSlider.setMax(1000);
         speedSlider.setValue(700);
         speedSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -207,9 +213,30 @@ public class SimulationPresenter implements MapChangeListener {
         bg.setFitWidth(20);
         bg.setFitHeight(20);
 
+        bg1 = new ImageView(new Image(getClass().getResourceAsStream("/img/bg1.png")));
+        bg1.setFitWidth(20);
+        bg1.setFitHeight(20);
+
         grass1 = new ImageView(new Image(getClass().getResourceAsStream("/img/grass_1.png")));
         grass1.setFitWidth(20);
         grass1.setFitHeight(20);
+
+        grass2_0 = new ImageView(new Image(getClass().getResourceAsStream("/img/grass_2_0.png")));
+        grass2_0.setFitWidth(20);
+        grass2_0.setFitHeight(20);
+
+        grass2_1 = new ImageView(new Image(getClass().getResourceAsStream("/img/grass_2_1.png")));
+        grass2_1.setFitWidth(20);
+        grass2_1.setFitHeight(20);
+
+        grass2_2 = new ImageView(new Image(getClass().getResourceAsStream("/img/grass_2_2.png")));
+        grass2_2.setFitWidth(20);
+        grass2_2.setFitHeight(20);
+
+        grass2_3 = new ImageView(new Image(getClass().getResourceAsStream("/img/grass_2_3.png")));
+        grass2_3.setFitWidth(20);
+        grass2_3.setFitHeight(20);
+
 
         animalDetails.setVisible(false);
 
@@ -282,7 +309,19 @@ public class SimulationPresenter implements MapChangeListener {
         StackPane cell = new StackPane();
         cell.setPrefSize(cellSize, cellSize);
 
-        ImageView bgImageView = new ImageView(bg.getImage());
+        Vector2d squareJunglePosition = map.getSquareJunglePosition();
+        int squareJungleLength = map.getSquareJungleLength();
+
+        ImageView bgImageView;
+        if (map.getPlantGrowthVariant() == PlantGrowthVariant.Equator &&
+                position.getY() >= map.getJungleBottom() && position.getY() <= map.getJungleTop()) {
+            bgImageView = new ImageView(bg1.getImage());
+        } else if (map.getPlantGrowthVariant() == PlantGrowthVariant.GoodHarvest && position.follows(squareJunglePosition) && position.precedes(squareJunglePosition.add(new Vector2d(squareJungleLength - 1, squareJungleLength - 1)))) {
+            bgImageView = new ImageView(bg1.getImage());
+        } else {
+            bgImageView = new ImageView(bg.getImage());
+        }
+
         bgImageView.setFitWidth(cellSize);
         bgImageView.setFitHeight(cellSize);
         cell.getChildren().add(bgImageView);
@@ -304,7 +343,22 @@ public class SimulationPresenter implements MapChangeListener {
                 cell.getChildren().add(healthBar);
             }
         } else if (map.isOccupiedByPlant(position)) {
-            ImageView grassImageView = new ImageView(grass1.getImage());
+            ImageView grassImageView = new ImageView();
+            if(map.getPlants().get(position) instanceof SuperPlant){
+                grassImageView = new ImageView(grass2_0.getImage());
+            }
+            else if (map.getPlants().get(position.add(new Vector2d(0,-1))) instanceof SuperPlant){
+                grassImageView = new ImageView(grass2_2.getImage());
+            }
+            else if (map.getPlants().get(position.add(new Vector2d(-1,-1))) instanceof SuperPlant){
+                grassImageView = new ImageView(grass2_3.getImage());
+            }
+            else if (map.getPlants().get(position.add(new Vector2d(-1, 0))) instanceof SuperPlant){
+                grassImageView = new ImageView(grass2_1.getImage());
+            }
+            else{
+                grassImageView = new ImageView(grass1.getImage());
+            }
             grassImageView.setFitWidth(cellSize);
             grassImageView.setFitHeight(cellSize);
             cell.getChildren().add(grassImageView);

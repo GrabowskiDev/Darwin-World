@@ -13,7 +13,7 @@
                     <Label text="Simulation Speed:" />
                     <Slider fx:id="speedSlider" max="2000" min="1" value="1000" />
                     <HBox spacing="10">
-                        <Label text="1ms" />
+                        <Label text="80ms" />
                         <Region fx:id="leftSpacer" HBox.hgrow="ALWAYS" />
                         <Label text="500ms" />
                         <Region fx:id="rightSpacer" HBox.hgrow="ALWAYS" />
