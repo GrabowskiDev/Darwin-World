@@ -40,8 +40,28 @@ public class SettingsPresenter {
     private void initialize() {
         plantGrowthVariantBox.setValue("Forested Equator");
         behaviorVariantBox.setValue("Full Predestination");
+
+        addFocusListener(mapWidthField);
+        addFocusListener(mapHeightField);
+        addFocusListener(numPlantsStartField);
+        addFocusListener(energyBoostField);
+        addFocusListener(numPlantsGrowField);
+        addFocusListener(numAnimalsStartField);
+        addFocusListener(energyValueStartField);
+        addFocusListener(minEnergyReproduceField);
+        addFocusListener(energyTransferField);
+        addFocusListener(minMutationsField);
+        addFocusListener(maxMutationsField);
+        addFocusListener(genomeLengthField);
     }
 
+    private void addFocusListener(TextField textField) {
+        textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue) { // focus lost
+                validateInputs();
+            }
+        });
+    }
     @FXML
     private void handleStartButton() {
         if (validateInputs()) {
@@ -107,13 +127,29 @@ public class SettingsPresenter {
             int maxMutations = parseInt(maxMutationsField.getText());
             int genomeLength = parseInt(genomeLengthField.getText());
 
-            if (mapWidth <= 0 || mapHeight <= 0 || energyBoost <= 0 || numPlantsGrow <= 0 || numAnimalsStart <= 0 ||
-                    energyValueStart <= 0 || minEnergyReproduce <= 0 || energyTransfer <= 0 || minMutations < 0 ||
-                    maxMutations < 0 || genomeLength <= 0 || numPlantsStart <= 0 || numPlantsStart >= mapWidth * mapHeight ||
-                    numAnimalsStart <= 0 || numAnimalsStart >= mapWidth * mapHeight) {
-                showAlert("Validation Error", "All values must be greater than 0 and within valid ranges.");
-                return false;
+            if (mapWidth < 1) {
+                mapWidthField.setText("1");
+                mapWidth = 1;
             }
+            if (mapHeight < 1) {
+                mapHeightField.setText("1");
+                mapHeight = 1;
+            }
+            if (numPlantsStart < 0) numPlantsStartField.setText("0");
+            if (numPlantsStart > mapWidth * mapHeight) numPlantsStartField.setText(String.valueOf((mapWidth * mapHeight)));
+            if (energyBoost < 0) energyBoostField.setText("0");
+            if (numPlantsGrow < 0) numPlantsGrowField.setText("0");
+            if (numAnimalsStart < 1) numAnimalsStartField.setText("1");
+            if (energyValueStart < 1) energyValueStartField.setText("1");
+            if (minEnergyReproduce < 1) minEnergyReproduceField.setText("1");
+            if (energyTransfer < 1) energyTransferField.setText("1");
+            if (minMutations < 0) minMutationsField.setText("0");
+            if (maxMutations < 0) maxMutationsField.setText("0");
+            if (maxMutations < minMutations) maxMutationsField.setText(minMutationsField.getText());
+            if (genomeLength < 1) genomeLengthField.setText("1");
+            if (maxMutations > genomeLength) maxMutationsField.setText(genomeLengthField.getText());
+            if (minEnergyReproduce > energyTransfer) minEnergyReproduceField.setText(energyTransferField.getText());
+
         } catch (NumberFormatException e) {
             showAlert("Validation Error", "All fields must contain numeric values.");
             return false;

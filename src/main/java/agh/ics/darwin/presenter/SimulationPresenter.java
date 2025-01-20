@@ -344,6 +344,7 @@ public class SimulationPresenter implements MapChangeListener {
         if (hasAnimal) {
             cell.setOnMouseClicked(event -> {
                 if (!isRunning) {
+                    animalDetails.setVisible(false);
                     if (selectedCell != null) {
                         selectedCell.setStyle("-fx-border-color: black; -fx-border-width: " + borderWidth + ";");
                     }
