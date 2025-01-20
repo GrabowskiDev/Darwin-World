@@ -2,23 +2,26 @@ package agh.ics.darwin;
 
 import agh.ics.darwin.model.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Simulation implements Runnable {
+    private final Lock lock = new ReentrantLock();
+    private final Condition pausedCondition = lock.newCondition();
     private final Parameters parameters;
     private final WorldMap map;
     private final static int MAX_ITERATIONS = 50; //TEMPORARY SOLUTION
     private int sleepDuration = 700;
-    private final List<DailyStatistics> dailyStatistics = new ArrayList<>();
-    private int day = 0;
-    private boolean isPaused = false;
-    private boolean isStarted = false;
+    private final List<DailyStatistics> dailyStatistics = Collections.synchronizedList(new ArrayList<>());
+    private final AtomicInteger day = new AtomicInteger(0);
+    private volatile boolean isPaused = false;
+    private volatile boolean isStarted = false;
     private volatile boolean isFinished = false;
-
 
     public void addDailyStatistics(DailyStatistics stats) {
         dailyStatistics.add(stats);
@@ -38,8 +41,8 @@ public class Simulation implements Runnable {
         for (int i = 0; i < parameters.startAnimals(); i++) {
             Vector2d animalPosition = new Vector2d((int) (Math.random() * parameters.width()), (int) (Math.random() * parameters.height()));
             int[] genesArray = new int[parameters.genomeLength()];
-            for (int j=0; j<genesArray.length; j++) {
-                genesArray[j] = new java.util.Random().nextInt(8);
+            for (int j = 0; j < genesArray.length; j++) {
+                genesArray[j] = new Random().nextInt(8);
             }
 
             Animal animal = new Animal(animalPosition, getRandomMapDirection(), parameters.startEnergy(), new Genes(genesArray));
@@ -52,39 +55,56 @@ public class Simulation implements Runnable {
     }
 
     public synchronized void pause() {
-        isPaused = true;
+        lock.lock();
+        try {
+            isPaused = true;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public synchronized void resume() {
-        isPaused = false;
-        notify();
+        lock.lock();
+        try {
+            isPaused = false;
+            pausedCondition.signal();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public synchronized void stop() {
-        isFinished = true;
+        lock.lock();
+        try {
+            isFinished = true;
+            pausedCondition.signal();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void run() {
         isStarted = true;
         while (true) {
-            if (isFinished) {
-                break;
-            }
-            synchronized (this) {
+            lock.lock();
+            try {
                 while (isPaused) {
-                    try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    pausedCondition.await();
                 }
+                if (isFinished) {
+                    break;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                lock.unlock();
             }
             removeDeadAnimals();
             moveAnimals();
             eatPlants();
             reproduceAnimals();
             growNewPlants();
-            day++;
+            day.incrementAndGet();
             map.notifyObservers();
             try {
                 Thread.sleep(sleepDuration);
@@ -94,40 +114,30 @@ public class Simulation implements Runnable {
         }
     }
 
-    private synchronized void removeDeadAnimals() {
-        ArrayList <Animal> animalsToRemove = new ArrayList<>();
-        for (Map.Entry<Vector2d, CopyOnWriteArrayList<Animal>> entry : map.getAnimals().entrySet()) {
-            CopyOnWriteArrayList<Animal> animals = entry.getValue();
-            for (Animal animal : animals) {
+    private void removeDeadAnimals() {
+        map.getAnimals().values().parallelStream().forEach(animals -> {
+            List<Animal> toRemove = new ArrayList<>();
+            animals.parallelStream().forEach(animal -> {
                 if (animal.getEnergy() <= 0) {
-                    animalsToRemove.add(animal);
+                    animal.setDayOfDeath(day.get());
+                    toRemove.add(animal);
                 }
-            }
-        }
-        for (Animal animal : animalsToRemove) {
-            animal.setDayOfDeath(day);
-            map.remove(animal);
-        }
+            });
+            animals.removeAll(toRemove);
+            toRemove.forEach(map::remove);
+        });
     }
 
     private void moveAnimals() {
-        ArrayList <Animal> animalsToMove = new ArrayList<>();
-        for (Map.Entry<Vector2d, CopyOnWriteArrayList<Animal>> entry : map.getAnimals().entrySet()) {
-            CopyOnWriteArrayList<Animal> animals = entry.getValue();
-            for (Animal animal : animals) {
-                animalsToMove.add(animal);
-            }
-        }
-        for (Animal animal : animalsToMove) {
+        map.getAnimals().values().parallelStream().flatMap(List::stream).forEach(animal -> {
             map.move(animal);
             animal.loseEnergy(1);
             animal.incrementAge();
-        }
+        });
     }
 
-    private synchronized void eatPlants() {
-        ArrayList<Plant> plantsToRemove = new ArrayList<>();
-        for (Map.Entry<Vector2d, Plant> entry : map.getPlants().entrySet()) {
+    private void eatPlants() {
+        map.getPlants().entrySet().parallelStream().forEach(entry -> {
             Vector2d plantPosition = entry.getKey();
             Plant plant = entry.getValue();
             if (map.isOccupiedByAnimal(plantPosition)) {
@@ -136,43 +146,52 @@ public class Simulation implements Runnable {
                     Animal animal = animals.get(0); // Assuming the list is sorted by strength
                     animal.gainEnergy(parameters.plantEnergy());
                     animal.addPlantsEaten();
-                    plantsToRemove.add(plant);
+                    map.remove(plant);
                 }
             }
-        }
-        for (Plant plant : plantsToRemove) {
-            map.remove(plant);
-        }
+        });
     }
 
     private void reproduceAnimals() {
-        ArrayList <Animal> animalsToPlace = new ArrayList<>();
-        for (Map.Entry<Vector2d, CopyOnWriteArrayList<Animal>> entry : map.getAnimals().entrySet()) {
-            CopyOnWriteArrayList<Animal> animals = entry.getValue();
-            for (int i = 0; i < animals.size()-1; i+=2) {
+        map.getAnimals().values().parallelStream().forEach(animals -> {
+            for (int i = 0; i < animals.size() - 1; i += 2) {
                 Animal parent1 = animals.get(i);
-                Animal parent2 = animals.get(i+1);
+                Animal parent2 = animals.get(i + 1);
                 if (parent2.getEnergy() >= parameters.energyToBeFed()) {
-                    //Genes
                     int totalEnergy = parent1.getEnergy() + parent2.getEnergy();
-                    int parent1Len = (int) Math.ceil(((double) parent1.getEnergy()/totalEnergy ) * parameters.genomeLength());
+                    int parent1Len = (int) Math.ceil(((double) parent1.getEnergy() / totalEnergy) * parameters.genomeLength());
                     int parent2Len = parameters.genomeLength() - parent1Len;
                     Genes childGenes = new Genes(parent1.getGenes().getGenes(), parent2.getGenes().getGenes(), parent1Len, parent2Len, parameters.minMutations(), parameters.maxMutations());
 
-                    Animal child = new Animal(parent1.getPosition(), getRandomMapDirection(), parameters.energyUsedToBreed() * 2, childGenes);
-                    animalsToPlace.add(child);
+                    Animal child = new Animal(parent1.getPosition(), getRandomMapDirection(), parameters.energyUsedToBreed() * 2, childGenes, parent1.getId(), parent2.getId());
+                    map.place(child);
                     parent1.loseEnergy(parameters.energyUsedToBreed());
                     parent2.loseEnergy(parameters.energyUsedToBreed());
                     parent1.addChildren();
                     parent2.addChildren();
+                    handleDescendants(child);
                 } else {
                     break;
                 }
             }
-        }
+        });
+    }
 
-        for (Animal animal : animalsToPlace) {
-            map.place(animal);
+    private void handleDescendants(Animal child) {
+        List<Integer> parents = child.getParentsId();
+        if (parents.get(0) != null) {
+            Animal parent = map.getAnimalById(parents.get(0));
+            if (parent != null) {
+                parent.addDescendants(1);
+                handleDescendants(parent);
+            }
+        }
+        if (parents.get(1) != null) {
+            Animal parent = map.getAnimalById(parents.get(1));
+            if (parent != null) {
+                parent.addDescendants(1);
+                handleDescendants(parent);
+            }
         }
     }
 
@@ -188,7 +207,6 @@ public class Simulation implements Runnable {
         while (i < parameters.plantsPerDay()) {
             boolean placeOutside = false;
             if (random.nextDouble() < 0.8) {
-                // Place plant inside the jungle
                 if (!junglePositionGenerator.iterator().hasNext()) {
                     placeOutside = true;
                 } else {
@@ -204,7 +222,6 @@ public class Simulation implements Runnable {
                 placeOutside = true;
             }
             if (placeOutside) {
-                // Place plant outside the jungle
                 if (!outsideJunglePositionGenerator.iterator().hasNext()) {
                     break;
                 }
@@ -221,8 +238,8 @@ public class Simulation implements Runnable {
         }
     }
 
-    private MapDirection getRandomMapDirection() { //TODO: Create an util with functions like this
-        int random = new java.util.Random().nextInt(8);
+    private MapDirection getRandomMapDirection() {
+        int random = new Random().nextInt(8);
         return switch (random) {
             case 0 -> MapDirection.NORTH;
             case 1 -> MapDirection.NORTHEAST;
@@ -241,6 +258,6 @@ public class Simulation implements Runnable {
     }
 
     public int getDay() {
-        return day;
+        return day.get();
     }
 }

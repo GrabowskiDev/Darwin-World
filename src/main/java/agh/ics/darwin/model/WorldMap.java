@@ -95,9 +95,9 @@ public class WorldMap {
         if (element.getClass() == Animal.class) {
             if (animals.containsKey(position)) {
                 animals.get(position).add((Animal) element);
-                animals.get(position).sort(Comparator.comparingInt(Animal::getEnergy)
-                        .thenComparingInt(Animal::getAge)
-                        .thenComparingInt(Animal::getNumberOfChildren)
+                animals.get(position).sort(Comparator.comparingInt(Animal::getEnergy).reversed()
+                        .thenComparingInt(Animal::getAge).reversed()
+                        .thenComparingInt(Animal::getNumberOfChildren).reversed()
                         .thenComparing(a -> new Random().nextInt()));
             } else {
                 animals.put(position, new CopyOnWriteArrayList<>(Collections.singletonList((Animal) element)));
@@ -179,5 +179,16 @@ public class WorldMap {
 
     public BehaviourVariant getBehaviourVariant() {
         return behaviourVariant;
+    }
+
+    public Animal getAnimalById(int id) {
+        for (CopyOnWriteArrayList<Animal> animalsArray : animals.values()) {
+            for (Animal animal : animalsArray) {
+                if (animal.getId() == id) {
+                    return animal;
+                }
+            }
+        }
+        return null;
     }
 }

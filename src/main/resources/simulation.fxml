@@ -57,11 +57,13 @@
             <Label text="Animals on selected field:" />
             <HBox fx:id="animalImages" spacing="10" />
             <VBox fx:id="animalDetails" spacing="5">
+                <Label fx:id="IDLabel" text="ID: " />
                 <Label fx:id="genomeLabel" text="Genome: " />
                 <Label fx:id="activatedGenomePartLabel" text="Activated Genome Part: " />
                 <Label fx:id="energyLabel" text="Energy: " />
                 <Label fx:id="eatenPlantsLabel" text="Eaten Plants: " />
                 <Label fx:id="numberOfChildrenLabel" text="Number of Children: " />
+                <Label fx:id="numberOfDescendantsLabel" text="Number of Descendants: " />
                 <Label fx:id="lifespanLabel" text="Lifespan: " />
                 <Label fx:id="dayOfDeathLabel" text="Day of Death: " />
             </VBox>
