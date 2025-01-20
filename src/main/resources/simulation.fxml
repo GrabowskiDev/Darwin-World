@@ -3,11 +3,12 @@
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<HBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17.0.12" fx:controller="agh.ics.darwin.presenter.SimulationPresenter">
-    <VBox alignment="TOP_CENTER" HBox.hgrow="ALWAYS"  VBox.vgrow="ALWAYS">
-        <HBox alignment="TOP_CENTER" style="-fx-background-color: gray;" VBox.vgrow="ALWAYS">
-            <ScrollPane fitToHeight="false" minWidth="230.0" maxHeight="Infinity" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
-                <VBox fx:id="leftSection" spacing="10">
+
+<HBox prefWidth="736.0" stylesheets="@darkmode.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="agh.ics.darwin.presenter.SimulationPresenter">
+    <VBox alignment="TOP_CENTER" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+        <HBox alignment="TOP_CENTER" style="-fx-background-color: #2b2b2b;" VBox.vgrow="ALWAYS">
+            <ScrollPane fitToHeight="false" fitToWidth="true" hbarPolicy="NEVER" maxHeight="Infinity" minWidth="230.0" prefHeight="573.0" prefWidth="230.0" style="-fx-background-color: #2b2b2b;" vbarPolicy="ALWAYS">
+                <VBox fx:id="leftSection" spacing="10" style="-fx-background-color: #2b2b2b;">
                     <Button fx:id="simulationButton" onAction="#handleSimulationButton" text="Start Simulation" />
                     <Button fx:id="statsButton" onAction="#handleStatsButton" text="Export Statistics" />
                     <Label text="Simulation Speed:" />
@@ -36,28 +37,28 @@
                     </TitledPane>
                 </VBox>
             </ScrollPane>
-            <ScrollPane fx:id="mapScrollPane" fitToWidth="true" fitToHeight="true" HBox.hgrow="ALWAYS">
+            <ScrollPane fx:id="mapScrollPane" fitToHeight="true" fitToWidth="true" HBox.hgrow="ALWAYS">
                 <GridPane fx:id="mapGrid" />
             </ScrollPane>
         </HBox>
-        <HBox alignment="CENTER" maxHeight="300.0" minHeight="300.0" style="-fx-background-color: lightgray;" VBox.vgrow="ALWAYS">
-            <LineChart fx:id="statisticsChart" title="Simulation Statistics" createSymbols="false" legendSide="LEFT" HBox.hgrow="ALWAYS">
+        <HBox alignment="CENTER" maxHeight="300.0" minHeight="300.0" VBox.vgrow="ALWAYS">
+            <LineChart fx:id="statisticsChart" createSymbols="false" legendSide="LEFT" title="Simulation Statistics" HBox.hgrow="ALWAYS">
                 <xAxis>
-                    <NumberAxis label="Day" side="BOTTOM" tickLabelFill="BLACK" />
+                    <NumberAxis label="Day" side="BOTTOM" tickLabelFill="WHITE" />
                 </xAxis>
                 <yAxis>
-                    <NumberAxis label="Value" side="LEFT" tickLabelFill="BLACK" />
+                    <NumberAxis label="Value" side="LEFT" tickLabelFill="WHITE" />
                 </yAxis>
             </LineChart>
         </HBox>
 
     </VBox>
-    <ScrollPane fitToHeight="false" minWidth="230.0" maxHeight="Infinity" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
+    <ScrollPane fitToHeight="false" fitToWidth="true" hbarPolicy="NEVER" maxHeight="Infinity" minWidth="230.0" prefWidth="226.0" vbarPolicy="ALWAYS">
         <VBox fx:id="rightSection" spacing="10">
             <Label fx:id="info" text="Click on field to get more info" />
             <VBox fx:id="content">
                 <Label text="Animals on selected field:" />
-                <ScrollPane fitToWidth="true" fitToHeight="true" maxHeight="130.0">
+                <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="130.0">
                     <VBox fx:id="animalList" spacing="10" />
                 </ScrollPane>
                 <VBox fx:id="animalDetails" spacing="5">

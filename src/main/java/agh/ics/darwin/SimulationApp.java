@@ -13,11 +13,9 @@ public class SimulationApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getClassLoader().getResource("settings.fxml"));
         BorderPane viewRoot = loader.load();
-        SettingsPresenter presenter = loader.getController();
         configureStage(primaryStage, viewRoot);
         primaryStage.show();
     }

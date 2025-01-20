@@ -4,7 +4,6 @@ import agh.ics.darwin.model.*;
 import agh.ics.darwin.model.variants.PlantGrowthVariant;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
@@ -16,7 +15,6 @@ public class Simulation implements Runnable {
     private final Condition pausedCondition = lock.newCondition();
     private final Parameters parameters;
     private final WorldMap map;
-    private final static int MAX_ITERATIONS = 50; //TEMPORARY SOLUTION
     private int sleepDuration = 700;
     private final List<DailyStatistics> dailyStatistics = Collections.synchronizedList(new ArrayList<>());
     private final AtomicInteger day = new AtomicInteger(0);
