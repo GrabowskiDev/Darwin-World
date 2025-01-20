@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -94,7 +96,7 @@ public class WorldMapTest {
         WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Animal animal = new Animal(new Vector2d(2, 3), MapDirection.NORTH,10, new Genes(new int[]{0, 1, 2, 3, 4, 5, 6, 7}));
         map.place(animal);
-        Map<Vector2d, ArrayList<Animal>> animals = map.getAnimals();
+        ConcurrentHashMap<Vector2d, CopyOnWriteArrayList<Animal>> animals = map.getAnimals();
         assertTrue(animals.containsKey(new Vector2d(2, 3)));
     }
 
@@ -103,7 +105,7 @@ public class WorldMapTest {
         WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
         Plant plant = new Plant(new Vector2d(2, 3));
         map.place(plant);
-        Map<Vector2d, Plant> plants = map.getPlants();
+        Map<Vector2d, WorldElement> plants = map.getPlants();
         assertTrue(plants.containsKey(new Vector2d(2, 3)));
     }
 
@@ -171,7 +173,7 @@ public class WorldMapTest {
         int junglePlantCount = 0;
         int outsideJunglePlantCount = 0;
 
-        for (Map.Entry<Vector2d, Plant> entry : map.getPlants().entrySet()) {
+        for (Map.Entry<Vector2d, WorldElement> entry : map.getPlants().entrySet()) {
             Vector2d position = entry.getKey();
             if (position.getY() >= jungleBottom && position.getY() <= jungleTop) {
                 junglePlantCount++;
