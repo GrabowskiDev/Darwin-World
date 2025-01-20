@@ -11,7 +11,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -26,42 +25,36 @@ import static java.lang.Integer.parseInt;
 public class SettingsPresenter {
 
     @FXML
-    private TextField mapWidthField, mapHeightField, numPlantsStartField, energyBoostField, numPlantsGrowField;
+    private TextField mapWidthField, mapHeightField, numPlantsStartField, energyBoostField,
+            numPlantsGrowField, numAnimalsStartField, energyValueStartField, minEnergyReproduceField,
+            energyTransferField, minMutationsField, maxMutationsField, genomeLengthField;
     @FXML
     private ComboBox<String> plantGrowthVariantBox, behaviorVariantBox;
     @FXML
-    private TextField numAnimalsStartField, energyValueStartField, minEnergyReproduceField, energyTransferField;
-    @FXML
-    private TextField minMutationsField, maxMutationsField, genomeLengthField;
-    @FXML
-    private Button startButton, exportButton, importButton;
+    private Button exportButton, importButton;
 
     @FXML
     private void initialize() {
         plantGrowthVariantBox.setValue("Forested Equator");
         behaviorVariantBox.setValue("Full Predestination");
 
-        addFocusListener(mapWidthField);
-        addFocusListener(mapHeightField);
-        addFocusListener(numPlantsStartField);
-        addFocusListener(energyBoostField);
-        addFocusListener(numPlantsGrowField);
-        addFocusListener(numAnimalsStartField);
-        addFocusListener(energyValueStartField);
-        addFocusListener(minEnergyReproduceField);
-        addFocusListener(energyTransferField);
-        addFocusListener(minMutationsField);
-        addFocusListener(maxMutationsField);
-        addFocusListener(genomeLengthField);
+        addFocusListeners();
     }
 
-    private void addFocusListener(TextField textField) {
-        textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue) { // focus lost
-                validateInputs();
-            }
-        });
+    private void addFocusListeners() {
+        TextField[] fields = {mapWidthField, mapHeightField, numPlantsStartField, energyBoostField,
+                numPlantsGrowField, numAnimalsStartField, energyValueStartField, minEnergyReproduceField,
+                energyTransferField, minMutationsField, maxMutationsField, genomeLengthField};
+
+        for (TextField field : fields) {
+            field.focusedProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue) {
+                    validateInputs();
+                }
+            });
+        }
     }
+
     @FXML
     private void handleStartButton() {
         if (validateInputs()) {
@@ -93,7 +86,7 @@ public class SettingsPresenter {
 
     private Parameters getParameters() {
         return new Parameters(
-               parseInt(mapWidthField.getText()),
+                parseInt(mapWidthField.getText()),
                 parseInt(mapHeightField.getText()),
                 MapVariant.Globe,
                 parseInt(numPlantsStartField.getText()),
@@ -108,53 +101,49 @@ public class SettingsPresenter {
                 parseInt(maxMutationsField.getText()),
                 MutationVariant.Random,
                 parseInt(genomeLengthField.getText()),
-                Objects.equals(behaviorVariantBox.getValue(), "Full Predestination") ? BehaviourVariant.Predestination : BehaviourVariant.Madness // You can add a dropdown in the FXML to select this
+                Objects.equals(behaviorVariantBox.getValue(), "Full Predestination") ? BehaviourVariant.Predestination : BehaviourVariant.Madness
         );
     }
 
     private boolean validateInputs() {
         try {
-            int mapWidth = parseInt(mapWidthField.getText());
-            int mapHeight = parseInt(mapHeightField.getText());
-            int numPlantsStart = parseInt(numPlantsStartField.getText());
-            int energyBoost = parseInt(energyBoostField.getText());
-            int numPlantsGrow = parseInt(numPlantsGrowField.getText());
-            int numAnimalsStart = parseInt(numAnimalsStartField.getText());
-            int energyValueStart = parseInt(energyValueStartField.getText());
-            int minEnergyReproduce = parseInt(minEnergyReproduceField.getText());
-            int energyTransfer = parseInt(energyTransferField.getText());
-            int minMutations = parseInt(minMutationsField.getText());
-            int maxMutations = parseInt(maxMutationsField.getText());
-            int genomeLength = parseInt(genomeLengthField.getText());
+            validateField(mapWidthField, 1, Integer.MAX_VALUE);
+            validateField(mapHeightField, 1, Integer.MAX_VALUE);
+            validateField(numPlantsStartField, 0, parseInt(mapWidthField.getText()) * parseInt(mapHeightField.getText()));
+            validateField(energyBoostField, 0, Integer.MAX_VALUE);
+            validateField(numPlantsGrowField, 0, Integer.MAX_VALUE);
+            validateField(numAnimalsStartField, 1, Integer.MAX_VALUE);
+            validateField(energyValueStartField, 1, Integer.MAX_VALUE);
+            validateField(minEnergyReproduceField, 1, Integer.MAX_VALUE);
+            validateField(energyTransferField, 1, Integer.MAX_VALUE);
+            validateField(minMutationsField, 0, Integer.MAX_VALUE);
+            validateField(maxMutationsField, 0, Integer.MAX_VALUE);
+            validateField(genomeLengthField, 1, Integer.MAX_VALUE);
 
-            if (mapWidth < 1) {
-                mapWidthField.setText("1");
-                mapWidth = 1;
+            if (parseInt(maxMutationsField.getText()) < parseInt(minMutationsField.getText())) {
+                maxMutationsField.setText(minMutationsField.getText());
             }
-            if (mapHeight < 1) {
-                mapHeightField.setText("1");
-                mapHeight = 1;
+            if (parseInt(maxMutationsField.getText()) > parseInt(genomeLengthField.getText())) {
+                maxMutationsField.setText(genomeLengthField.getText());
             }
-            if (numPlantsStart < 0) numPlantsStartField.setText("0");
-            if (numPlantsStart > mapWidth * mapHeight) numPlantsStartField.setText(String.valueOf((mapWidth * mapHeight)));
-            if (energyBoost < 0) energyBoostField.setText("0");
-            if (numPlantsGrow < 0) numPlantsGrowField.setText("0");
-            if (numAnimalsStart < 1) numAnimalsStartField.setText("1");
-            if (energyValueStart < 1) energyValueStartField.setText("1");
-            if (minEnergyReproduce < 1) minEnergyReproduceField.setText("1");
-            if (energyTransfer < 1) energyTransferField.setText("1");
-            if (minMutations < 0) minMutationsField.setText("0");
-            if (maxMutations < 0) maxMutationsField.setText("0");
-            if (maxMutations < minMutations) maxMutationsField.setText(minMutationsField.getText());
-            if (genomeLength < 1) genomeLengthField.setText("1");
-            if (maxMutations > genomeLength) maxMutationsField.setText(genomeLengthField.getText());
-            if (minEnergyReproduce > energyTransfer) minEnergyReproduceField.setText(energyTransferField.getText());
+            if (parseInt(minEnergyReproduceField.getText()) > parseInt(energyTransferField.getText())) {
+                minEnergyReproduceField.setText(energyTransferField.getText());
+            }
 
         } catch (NumberFormatException e) {
             showAlert("Validation Error", "All fields must contain numeric values.");
             return false;
         }
         return true;
+    }
+
+    private void validateField(TextField field, int minValue, int maxValue) {
+        int value = parseInt(field.getText());
+        if (value < minValue) {
+            field.setText(String.valueOf(minValue));
+        } else if (value > maxValue) {
+            field.setText(String.valueOf(maxValue));
+        }
     }
 
     private void showAlert(String title, String message) {
@@ -176,26 +165,30 @@ public class SettingsPresenter {
 
         File file = fileChooser.showSaveDialog(exportButton.getScene().getWindow());
         if (file != null) {
-            try (OutputStream output = new FileOutputStream(file)) {
-                Properties prop = new Properties();
-                prop.setProperty("mapWidth", mapWidthField.getText());
-                prop.setProperty("mapHeight", mapHeightField.getText());
-                prop.setProperty("numPlantsStart", numPlantsStartField.getText());
-                prop.setProperty("energyBoost", energyBoostField.getText());
-                prop.setProperty("numPlantsGrow", numPlantsGrowField.getText());
-                prop.setProperty("plantGrowthVariant", plantGrowthVariantBox.getValue());
-                prop.setProperty("numAnimalsStart", numAnimalsStartField.getText());
-                prop.setProperty("energyValueStart", energyValueStartField.getText());
-                prop.setProperty("minEnergyReproduce", minEnergyReproduceField.getText());
-                prop.setProperty("energyTransfer", energyTransferField.getText());
-                prop.setProperty("minMutations", minMutationsField.getText());
-                prop.setProperty("maxMutations", maxMutationsField.getText());
-                prop.setProperty("genomeLength", genomeLengthField.getText());
-                prop.setProperty("behaviorVariant", behaviorVariantBox.getValue());
-                prop.store(output, null);
-            } catch (IOException io) {
-                io.printStackTrace();
-            }
+            savePropertiesToFile(file);
+        }
+    }
+
+    private void savePropertiesToFile(File file) {
+        try (OutputStream output = new FileOutputStream(file)) {
+            Properties prop = new Properties();
+            prop.setProperty("mapWidth", mapWidthField.getText());
+            prop.setProperty("mapHeight", mapHeightField.getText());
+            prop.setProperty("numPlantsStart", numPlantsStartField.getText());
+            prop.setProperty("energyBoost", energyBoostField.getText());
+            prop.setProperty("numPlantsGrow", numPlantsGrowField.getText());
+            prop.setProperty("plantGrowthVariant", plantGrowthVariantBox.getValue());
+            prop.setProperty("numAnimalsStart", numAnimalsStartField.getText());
+            prop.setProperty("energyValueStart", energyValueStartField.getText());
+            prop.setProperty("minEnergyReproduce", minEnergyReproduceField.getText());
+            prop.setProperty("energyTransfer", energyTransferField.getText());
+            prop.setProperty("minMutations", minMutationsField.getText());
+            prop.setProperty("maxMutations", maxMutationsField.getText());
+            prop.setProperty("genomeLength", genomeLengthField.getText());
+            prop.setProperty("behaviorVariant", behaviorVariantBox.getValue());
+            prop.store(output, null);
+        } catch (IOException io) {
+            io.printStackTrace();
         }
     }
 
@@ -206,26 +199,30 @@ public class SettingsPresenter {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Darwin Files", "*.dwfile"));
         File file = fileChooser.showOpenDialog(importButton.getScene().getWindow());
         if (file != null) {
-            try (InputStream input = new FileInputStream(file)) {
-                Properties prop = new Properties();
-                prop.load(input);
-                mapWidthField.setText(prop.getProperty("mapWidth"));
-                mapHeightField.setText(prop.getProperty("mapHeight"));
-                numPlantsStartField.setText(prop.getProperty("numPlantsStart"));
-                energyBoostField.setText(prop.getProperty("energyBoost"));
-                numPlantsGrowField.setText(prop.getProperty("numPlantsGrow"));
-                plantGrowthVariantBox.setValue(prop.getProperty("plantGrowthVariant"));
-                numAnimalsStartField.setText(prop.getProperty("numAnimalsStart"));
-                energyValueStartField.setText(prop.getProperty("energyValueStart"));
-                minEnergyReproduceField.setText(prop.getProperty("minEnergyReproduce"));
-                energyTransferField.setText(prop.getProperty("energyTransfer"));
-                minMutationsField.setText(prop.getProperty("minMutations"));
-                maxMutationsField.setText(prop.getProperty("maxMutations"));
-                genomeLengthField.setText(prop.getProperty("genomeLength"));
-                behaviorVariantBox.setValue(prop.getProperty("behaviorVariant"));
-            } catch (IOException io) {
-                io.printStackTrace();
-            }
+            loadPropertiesFromFile(file);
+        }
+    }
+
+    private void loadPropertiesFromFile(File file) {
+        try (InputStream input = new FileInputStream(file)) {
+            Properties prop = new Properties();
+            prop.load(input);
+            mapWidthField.setText(prop.getProperty("mapWidth"));
+            mapHeightField.setText(prop.getProperty("mapHeight"));
+            numPlantsStartField.setText(prop.getProperty("numPlantsStart"));
+            energyBoostField.setText(prop.getProperty("energyBoost"));
+            numPlantsGrowField.setText(prop.getProperty("numPlantsGrow"));
+            plantGrowthVariantBox.setValue(prop.getProperty("plantGrowthVariant"));
+            numAnimalsStartField.setText(prop.getProperty("numAnimalsStart"));
+            energyValueStartField.setText(prop.getProperty("energyValueStart"));
+            minEnergyReproduceField.setText(prop.getProperty("minEnergyReproduce"));
+            energyTransferField.setText(prop.getProperty("energyTransfer"));
+            minMutationsField.setText(prop.getProperty("minMutations"));
+            maxMutationsField.setText(prop.getProperty("maxMutations"));
+            genomeLengthField.setText(prop.getProperty("genomeLength"));
+            behaviorVariantBox.setValue(prop.getProperty("behaviorVariant"));
+        } catch (IOException io) {
+            io.printStackTrace();
         }
     }
 }
