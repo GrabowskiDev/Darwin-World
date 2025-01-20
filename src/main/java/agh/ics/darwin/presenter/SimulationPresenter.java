@@ -128,6 +128,8 @@ public class SimulationPresenter implements MapChangeListener {
 
     private Vector2d selectedCellPosition = null;
 
+    private Map<MapDirection, Image> directionImages = new HashMap<>();
+
 
     public void setMap(WorldMap map) {
         this.map = map;
@@ -237,6 +239,16 @@ public class SimulationPresenter implements MapChangeListener {
             mapScrollPane.setHvalue(newHValue);
             mapScrollPane.setVvalue(newVValue);
         });
+
+        directionImages.put(MapDirection.NORTH, new Image(getClass().getResourceAsStream("/img/kot_0.png")));
+        directionImages.put(MapDirection.NORTHEAST, new Image(getClass().getResourceAsStream("/img/kot_1.png")));
+        directionImages.put(MapDirection.EAST, new Image(getClass().getResourceAsStream("/img/kot_2.png")));
+        directionImages.put(MapDirection.SOUTHEAST, new Image(getClass().getResourceAsStream("/img/kot_3.png")));
+        directionImages.put(MapDirection.SOUTH, new Image(getClass().getResourceAsStream("/img/kot_4.png")));
+        directionImages.put(MapDirection.SOUTHWEST, new Image(getClass().getResourceAsStream("/img/kot_5.png")));
+        directionImages.put(MapDirection.WEST, new Image(getClass().getResourceAsStream("/img/kot_6.png")));
+        directionImages.put(MapDirection.NORTHWEST, new Image(getClass().getResourceAsStream("/img/kot_7.png")));
+
     }
 
 
@@ -393,17 +405,7 @@ public class SimulationPresenter implements MapChangeListener {
     }
 
     private ImageView getDirectionImage(MapDirection direction) {
-        String imagePath = switch (direction) {
-            case NORTH -> "/img/kot_0.png";
-            case NORTHEAST -> "/img/kot_1.png";
-            case EAST -> "/img/kot_2.png";
-            case SOUTHEAST -> "/img/kot_3.png";
-            case SOUTH -> "/img/kot_4.png";
-            case SOUTHWEST -> "/img/kot_5.png";
-            case WEST -> "/img/kot_6.png";
-            case NORTHWEST -> "/img/kot_7.png";
-        };
-        Image image = new Image(getClass().getResourceAsStream(imagePath));
+        Image image = directionImages.get(direction);
         ImageView imageView = new ImageView(image);
         imageView.setFitWidth(20); // Set the desired width
         imageView.setFitHeight(20);
