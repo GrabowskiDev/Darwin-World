@@ -249,4 +249,98 @@ public class WorldMapTest {
         assertEquals(new Vector2d(8, 9), animal3.getPosition());
         assertEquals(MapDirection.NORTHWEST, animal3.getDirection());
     }
+
+    @Test
+    void testAnimalsSortedByEnergy() {
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.Equator, BehaviourVariant.Predestination);
+        Vector2d position = new Vector2d(5, 5);
+
+        Animal animal1 = new Animal(position, MapDirection.NORTH, 10, new Genes(new int[]{0}));
+        Animal animal2 = new Animal(position, MapDirection.NORTH, 20, new Genes(new int[]{0}));
+        Animal animal3 = new Animal(position, MapDirection.NORTH, 15, new Genes(new int[]{0}));
+
+        map.place(animal1);
+        map.place(animal2);
+        map.place(animal3);
+
+        CopyOnWriteArrayList<Animal> animalsAtPosition = map.getAnimals().get(position);
+        assertNotNull(animalsAtPosition);
+        assertEquals(3, animalsAtPosition.size());
+
+        // Check if animals are sorted by energy level
+        assertEquals(animal2, animalsAtPosition.get(0));
+        assertEquals(animal3, animalsAtPosition.get(1));
+        assertEquals(animal1, animalsAtPosition.get(2));
+    }
+
+    @Test
+    void occupiedBySuperPlants() {
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.GoodHarvest, BehaviourVariant.Predestination);
+        SuperPlant superPlant1 = new SuperPlant(new Vector2d(5, 5));
+
+        map.place(superPlant1);
+
+        assertTrue(map.isOccupiedByPlant(new Vector2d(5, 5)));
+        assertTrue(map.isOccupiedByPlant(new Vector2d(6, 5)));
+        assertTrue(map.isOccupiedByPlant(new Vector2d(6, 6)));
+        assertTrue(map.isOccupiedByPlant(new Vector2d(5, 6)));
+
+        assertFalse(map.isOccupiedByPlant(new Vector2d(4, 6)));
+        assertFalse(map.isOccupiedByPlant(new Vector2d(4, 5)));
+        assertFalse(map.isOccupiedByPlant(new Vector2d(4, 4)));
+        assertFalse(map.isOccupiedByPlant(new Vector2d(5, 4)));
+        assertFalse(map.isOccupiedByPlant(new Vector2d(6, 4)));
+    }
+
+    @Test
+    void testSquareJungleDimensionsAndPositionSmallMap() {
+        WorldMap map = new WorldMap(10, 10, 0, PlantGrowthVariant.GoodHarvest, BehaviourVariant.Predestination);
+        assertEquals(4, map.getSquareJungleLength());
+        assertEquals(new Vector2d(3, 3), map.getSquareJunglePosition());
+    }
+
+    @Test
+    void testSquareJungleDimensionsAndPositionMediumMap() {
+        WorldMap map = new WorldMap(20, 20, 0, PlantGrowthVariant.GoodHarvest, BehaviourVariant.Predestination);
+        assertEquals(8, map.getSquareJungleLength());
+        assertEquals(new Vector2d(6, 6), map.getSquareJunglePosition());
+    }
+
+    @Test
+    void testSquareJungleDimensionsAndPositionLargeMap() {
+        WorldMap map = new WorldMap(50, 50, 0, PlantGrowthVariant.GoodHarvest, BehaviourVariant.Predestination);
+        assertEquals(22, map.getSquareJungleLength());
+        assertEquals(new Vector2d(14, 14), map.getSquareJunglePosition());
+    }
+
+    @Test
+    void testSquareJungleDimensionsAndPositionWide() {
+        WorldMap map = new WorldMap(50, 10, 0, PlantGrowthVariant.GoodHarvest, BehaviourVariant.Predestination);
+        assertEquals(10, map.getSquareJungleLength());
+        assertEquals(new Vector2d(20, 0), map.getSquareJunglePosition());
+    }
+
+    @Test
+    void testSquareJungleDimensionsAndPositionTall() {
+        WorldMap map = new WorldMap(10, 50, 0, PlantGrowthVariant.GoodHarvest, BehaviourVariant.Predestination);
+        assertEquals(10, map.getSquareJungleLength());
+        assertEquals(new Vector2d(0, 20), map.getSquareJunglePosition());
+    }
+
+    @Test
+    void superPlantsBeingPlacedInJungle() {
+        WorldMap map = new WorldMap(20, 20, 400, PlantGrowthVariant.GoodHarvest, BehaviourVariant.Predestination);
+        Vector2d junglePosition = map.getSquareJunglePosition();
+        int jungleLength = map.getSquareJungleLength();
+
+        for (Map.Entry<Vector2d, WorldElement> entry : map.getPlants().entrySet()) {
+            if (entry.getValue() instanceof SuperPlant) {
+                Vector2d position = entry.getKey();
+                boolean insideJungle = position.follows(junglePosition) &&
+                        position.precedes(junglePosition.add(new Vector2d(jungleLength - 2, jungleLength - 2))); //-2 because position is the upper left position of a plant
+                assertTrue(insideJungle);
+            }
+        }
+    }
+
 }
