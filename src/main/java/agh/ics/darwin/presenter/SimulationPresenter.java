@@ -95,6 +95,12 @@ public class SimulationPresenter implements MapChangeListener {
     private Label dayOfDeathLabel;
     @FXML
     private ScrollPane mapScrollPane;
+    @FXML
+    private VBox animalList;
+    @FXML
+    private VBox content;
+    @FXML
+    private Label info;
 
     private XYChart.Series<Number, Number> numAnimalsSeries = new XYChart.Series<>();
     private XYChart.Series<Number, Number> numPlantsSeries = new XYChart.Series<>();
@@ -205,7 +211,7 @@ public class SimulationPresenter implements MapChangeListener {
         grass1.setFitWidth(20);
         grass1.setFitHeight(20);
 
-        animalDetails.setVisible(true);
+        animalDetails.setVisible(false);
 
         // Add scroll event handler to mapGrid
         mapGrid.setOnScroll(event -> {
@@ -249,6 +255,7 @@ public class SimulationPresenter implements MapChangeListener {
         directionImages.put(MapDirection.WEST, new Image(getClass().getResourceAsStream("/img/kot_6.png")));
         directionImages.put(MapDirection.NORTHWEST, new Image(getClass().getResourceAsStream("/img/kot_7.png")));
 
+        content.setVisible(false);
     }
 
 
@@ -343,7 +350,8 @@ public class SimulationPresenter implements MapChangeListener {
                     cell.setStyle("-fx-border-color: yellow; -fx-border-width: " + borderWidth + ";");
                     selectedCell = cell;
                     selectedCellPosition = position;
-                    showSelectedAnimals(map.getAnimals().get(position));
+                    selectedAnimals = new ArrayList<>(map.getAnimals().get(position));
+                    updateAnimalList(selectedAnimals);
                 }
             });
         }
@@ -355,47 +363,40 @@ public class SimulationPresenter implements MapChangeListener {
     }
 
 
-    private void showSelectedAnimals(Collection<Animal> animals) {
-        selectedAnimals = new ArrayList<>(animals);
+    private void updateAnimalList(List<Animal> animals) {
         Platform.runLater(() -> {
-            animalImages.getChildren().clear();
-            animalDetails.setVisible(false);
-            for (int i = 0; i < selectedAnimals.size(); i++) {
-                Animal animal = selectedAnimals.get(i);
-                StackPane animalStack = createAnimalStack(animal, i);
-                animalImages.getChildren().add(animalStack);
+            animalList.getChildren().clear();
+            selectedAnimals = animals;
+            info.setVisible(false);
+            content.setVisible(true);
+            for (int i = 0; i < animals.size(); i++) {
+                Animal animal = animals.get(i);
+                HBox animalBox = new HBox(15); // Increased spacing to make the boxes bigger
+                ImageView animalImage = getDirectionImage(animal.getDirection());
+                animalImage.setFitWidth(30); // Increased width
+                animalImage.setFitHeight(30); // Increased height
+                Label animalIdLabel = new Label("ID: " + animal.getId());
+                animalBox.getChildren().addAll(animalImage, animalIdLabel);
+                int index = i; // Capture the index for the event handler
+                animalBox.setOnMouseClicked(event -> {
+                    showAnimalDetails(animal, index);
+                    // Reset all boxes to default background
+                    animalList.getChildren().forEach(node -> node.setStyle("-fx-background-color: #FFFFFF;"));
+                    // Set background of selected box to lighter color
+                    animalBox.setStyle("-fx-background-color: #CCCCCC;");
+                });
+                animalList.getChildren().add(animalBox);
             }
-            updateHealthbars(animals);
         });
-    }
-
-    private StackPane createAnimalStack(Animal animal, int index) {
-        StackPane animalStack = new StackPane();
-        ImageView animalImageView = getDirectionImage(animal.getDirection());
-        animalImageView.setFitWidth(40);
-        animalImageView.setFitHeight(40);
-        animalImageView.setOnMouseClicked(event -> showAnimalDetails(animal, index));
-        animalStack.getChildren().add(animalImageView);
-        return animalStack;
-    }
-
-    private void updateHealthbars(Collection<Animal> animals) {
-        selectedAnimals = new ArrayList<>(animals);
-        for (int i = 0; i < selectedAnimals.size(); i++) {
-            Animal animal = selectedAnimals.get(i);
-            StackPane animalStack = (StackPane) animalImages.getChildren().get(i);
-            animalStack.getChildren().removeIf(node -> node instanceof Rectangle);
-            Rectangle healthBar = createHealthBar(animal);
-            animalStack.getChildren().add(healthBar);
-        }
     }
 
     private void showAnimalDetails(Animal animal, int index) {
         selectedAnimalIndex = index;
+        animalDetails.setVisible(true);
         IDLabel.setText("ID: " + animal.getId());
         genomeLabel.setText("Genome: " + animal.getGenes().toString());
         activatedGenomePartLabel.setText("Activated Genome Part: " + animal.getGenes().getCurrentGene());
-        energyLabel.setText("Energy: " + animal.getEnergy());
+        energyLabel.setText("Energy: " + (Math.max(animal.getEnergy(), 0)));
         eatenPlantsLabel.setText("Eaten Plants: " + animal.getPlantsEaten());
         numberOfChildrenLabel.setText("Number of Children: " + animal.getNumberOfChildren());
         numberOfDescendantsLabel.setText("Number of Descendants: " + animal.getNumberOfDescendants());
@@ -418,6 +419,9 @@ public class SimulationPresenter implements MapChangeListener {
             synchronized (worldMap) {
                 displayMap(worldMap);
                 updateStatistics(worldMap);
+                if (!selectedAnimals.isEmpty()) {
+                    showAnimalDetails(selectedAnimals.get(selectedAnimalIndex), selectedAnimalIndex);
+                }
             }
         });
     }
@@ -472,10 +476,6 @@ public class SimulationPresenter implements MapChangeListener {
         Platform.runLater(() -> {
             updateStatisticsLabels(numAnimals, numPlants, numFreeFields, avgEnergy, avgLifespan, avgChildren);
             updateStatisticsChart(numAnimals, numPlants, numFreeFields, avgEnergy, avgLifespan, avgChildren);
-            if (!selectedAnimals.isEmpty()) {
-                updateHealthbars(selectedAnimals);
-                showAnimalDetails(selectedAnimals.get(selectedAnimalIndex), selectedAnimalIndex);
-            }
         });
 
         DailyStatistics dailyStats = new DailyStatistics(
@@ -502,9 +502,9 @@ public class SimulationPresenter implements MapChangeListener {
         numAnimalsLabel.setText("Number of all animals: " + numAnimals);
         numPlantsLabel.setText("Number of all plants: " + numPlants);
         numFreeFieldsLabel.setText("Number of free fields: " + numFreeFields);
-        avgEnergyLabel.setText("Average energy level: " + avgEnergy);
-        avgLifespanLabel.setText("Average lifespan: " + avgLifespan);
-        avgChildrenLabel.setText("Average number of children: " + avgChildren);
+        avgEnergyLabel.setText("Average energy level: " + Math.round(avgEnergy * 100.0) / 100.0);
+        avgLifespanLabel.setText("Average lifespan: " + Math.round(avgLifespan * 100.0) / 100.0);
+        avgChildrenLabel.setText("Average number of children: " + Math.round(avgChildren * 100.0) / 100.0);
     }
 
     private void updateStatisticsChart(int numAnimals, int numPlants, int numFreeFields, double avgEnergy, double avgLifespan, double avgChildren) {
@@ -519,18 +519,21 @@ public class SimulationPresenter implements MapChangeListener {
 
     private void updateGenotypeList(WorldMap worldMap) {
         Map<Genes, Long> genotypeCounts = new HashMap<>();
-        // Create a copy of the collection to avoid concurrent modification
-        List<Animal> animalsCopy = worldMap.getAnimals().values().stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
 
-        animalsCopy.forEach(animal -> genotypeCounts.merge(animal.getGenes(), 1L, Long::sum));
+        // Count the occurrences of each genotype
+        for (Collection<Animal> animals : worldMap.getAnimals().values()) {
+            for (Animal animal : animals) {
+                genotypeCounts.merge(animal.getGenes(), 1L, Long::sum);
+            }
+        }
 
+        // Sort the genotypes by their counts in descending order
         List<Map.Entry<Genes, Long>> sortedGenotypes = genotypeCounts.entrySet().stream()
                 .sorted(Map.Entry.<Genes, Long>comparingByValue().reversed())
                 .limit(5)
                 .collect(Collectors.toList());
 
+        // Update the genotype list in the UI
         Platform.runLater(() -> {
             genotypeList.getChildren().clear();
             for (Map.Entry<Genes, Long> entry : sortedGenotypes) {

@@ -62,6 +62,8 @@ public class SettingsPresenter {
                 Scene scene = new Scene(root, 1000, 800);
                 simulationStage.setScene(scene);
                 simulationPresenter.setStage(simulationStage);
+                simulationStage.setMinWidth(850);
+                simulationStage.setMinHeight(700);
                 simulationStage.show();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -88,19 +90,6 @@ public class SettingsPresenter {
                 parseInt(genomeLengthField.getText()),
                 Objects.equals(behaviorVariantBox.getValue(), "Full Predestination") ? BehaviourVariant.Predestination : BehaviourVariant.Madness // You can add a dropdown in the FXML to select this
         );
-    }
-
-    private String getDirectionArrow(MapDirection direction) {
-        return switch (direction) {
-            case NORTH -> "↑";
-            case NORTHEAST -> "↗";
-            case EAST -> "→";
-            case SOUTHEAST -> "↘";
-            case SOUTH -> "↓";
-            case SOUTHWEST -> "↙";
-            case WEST -> "←";
-            case NORTHWEST -> "↖";
-        };
     }
 
     private boolean validateInputs() {

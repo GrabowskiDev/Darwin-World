@@ -121,8 +121,8 @@ public class WorldMap {
                 } else {
                     animalsArray.remove(element);
                 }
-                deadAnimals.computeIfAbsent(position, k -> new CopyOnWriteArrayList<>()).add((Animal) element);
             }
+            deadAnimals.computeIfAbsent(position, k -> new CopyOnWriteArrayList<>()).add((Animal) element);
         } else if (element instanceof Plant && plants.get(position) == element) {
             plants.remove(position, element);
         }

@@ -116,15 +116,17 @@ public class Simulation implements Runnable {
 
     private void removeDeadAnimals() {
         map.getAnimals().values().parallelStream().forEach(animals -> {
-            List<Animal> toRemove = new ArrayList<>();
-            animals.parallelStream().forEach(animal -> {
+            List<Animal> deadAnimals = new ArrayList<>();
+            for (Animal animal : animals) {
                 if (animal.getEnergy() <= 0) {
                     animal.setDayOfDeath(day.get());
-                    toRemove.add(animal);
+                    deadAnimals.add(animal);
                 }
-            });
-            animals.removeAll(toRemove);
-            toRemove.forEach(map::remove);
+            }
+            if (!deadAnimals.isEmpty()) {
+                animals.removeAll(deadAnimals);
+                deadAnimals.forEach(map::remove);
+            }
         });
     }
 

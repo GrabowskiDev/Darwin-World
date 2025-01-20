@@ -41,7 +41,7 @@
             </ScrollPane>
         </HBox>
         <HBox alignment="CENTER" maxHeight="300.0" minHeight="300.0" style="-fx-background-color: lightgray;" VBox.vgrow="ALWAYS">
-            <LineChart fx:id="statisticsChart" title="Simulation Statistics" createSymbols="false" legendSide="LEFT">
+            <LineChart fx:id="statisticsChart" title="Simulation Statistics" createSymbols="false" legendSide="LEFT" HBox.hgrow="ALWAYS">
                 <xAxis>
                     <NumberAxis label="Day" side="BOTTOM" tickLabelFill="BLACK" />
                 </xAxis>
@@ -54,18 +54,23 @@
     </VBox>
     <ScrollPane fitToHeight="false" minWidth="230.0" maxHeight="Infinity" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
         <VBox fx:id="rightSection" spacing="10">
-            <Label text="Animals on selected field:" />
-            <HBox fx:id="animalImages" spacing="10" />
-            <VBox fx:id="animalDetails" spacing="5">
-                <Label fx:id="IDLabel" text="ID: " />
-                <Label fx:id="genomeLabel" text="Genome: " />
-                <Label fx:id="activatedGenomePartLabel" text="Activated Genome Part: " />
-                <Label fx:id="energyLabel" text="Energy: " />
-                <Label fx:id="eatenPlantsLabel" text="Eaten Plants: " />
-                <Label fx:id="numberOfChildrenLabel" text="Number of Children: " />
-                <Label fx:id="numberOfDescendantsLabel" text="Number of Descendants: " />
-                <Label fx:id="lifespanLabel" text="Lifespan: " />
-                <Label fx:id="dayOfDeathLabel" text="Day of Death: " />
+            <Label fx:id="info" text="Click on field to get more info" />
+            <VBox fx:id="content">
+                <Label text="Animals on selected field:" />
+                <ScrollPane fitToWidth="true" fitToHeight="true" maxHeight="130.0">
+                    <VBox fx:id="animalList" spacing="10" />
+                </ScrollPane>
+                <VBox fx:id="animalDetails" spacing="5">
+                    <Label fx:id="IDLabel" text="ID: " />
+                    <Label fx:id="genomeLabel" text="Genome: " />
+                    <Label fx:id="activatedGenomePartLabel" text="Activated Genome Part: " />
+                    <Label fx:id="energyLabel" text="Energy: " />
+                    <Label fx:id="eatenPlantsLabel" text="Eaten Plants: " />
+                    <Label fx:id="numberOfChildrenLabel" text="Number of Children: " />
+                    <Label fx:id="numberOfDescendantsLabel" text="Number of Descendants: " />
+                    <Label fx:id="lifespanLabel" text="Lifespan: " />
+                    <Label fx:id="dayOfDeathLabel" text="Day of Death: " />
+                </VBox>
             </VBox>
         </VBox>
     </ScrollPane>
